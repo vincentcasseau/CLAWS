@@ -1,0 +1,33 @@
+#!/bin/bash
+cd ${0%/*} || exit 1    # run from this directory
+
+currentDir=`pwd`
+
+echo "Testing vs. solution"
+RES_PATH=$currentDir
+SOL_PATH="$currentDir/solution"
+FILES_TO_TEST=`find . -maxdepth 1 \( -type f -a -name 'test_*.dat' \)`
+
+DIFF_FOUND=false
+
+for FILE in $FILES_TO_TEST
+do
+  if [ -f $RES_PATH/$FILE ];
+  then
+      if [ `diff $RES_PATH/$FILE $SOL_PATH/$FILE | wc -l` -ne 0 ];
+      then
+          echo "  > TEST FAILED: $FILE";
+          DIFF_FOUND=true;
+      fi
+  else
+      echo "  > RESULTS FILE MISSING: $RES_PATH/$FILE";
+      DIFF_FOUND=true;
+  fi
+done
+
+if [ "$DIFF_FOUND" = false ];
+then
+    echo "  > TESTS PASSED";
+else
+    echo "  > TESTS FAILED";
+fi

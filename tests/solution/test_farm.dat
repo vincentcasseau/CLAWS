@@ -1,0 +1,16 @@
+Haddock Farm
+	Site = South Bute
+		Longitude = -5.001
+		Latitude = 55.738552                
+		Reference = 
+	Treatment = Sea Lice Treatment
+		Tarpaulin height (m) = [3. 3. 3.]            
+		Tarpaulin radius (m) = [19. 19. 19.]
+		Seeding times (h) = [0. 3. 6.]            
+		Number of particles = [10000 10000 10000]
+		Chemicals = ['Cypermethrin', 'Cypermethrin', 'Cypermethrin']            
+		Marker index = [-1 -1 -1]
+		Reference =             
+	Yearly fish production (tonnes) = 50.0            
+	Total nutrient discharge (kg N per tonne of fish produced) = 72.3            
+	Reference = 

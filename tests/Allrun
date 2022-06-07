@@ -1,0 +1,27 @@
+#!/bin/bash
+cd ${0%/*} || exit 1    # run from this directory
+
+currentDir=`pwd`
+
+read -r -p "Please confirm? [Y/n] " input
+ 
+case $input in
+    [yY][eE][sS]|[yY])
+       echo "Runs in progress"
+       # Run all test_*.py scripts in this directory
+       for script_path in `find . \( -type f -a -name 'test_*.py' \)`
+       do
+           script_name=${script_path%.*}
+           echo $script_path
+           echo $script_name.dat
+           python $script_path > $script_name.dat 2>&1
+       done
+       ;;
+    [nN][oO]|[nN])
+       echo "Aborted"
+       ;;
+    *)
+ echo "Invalid input"
+ exit 1
+ ;;
+esac

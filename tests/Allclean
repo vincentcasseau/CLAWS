@@ -1,0 +1,25 @@
+#!/bin/bash
+cd ${0%/*} || exit 1    # run from this directory
+
+currentDir=`pwd`
+
+read -r -p "Please confirm? [Y/n] " input
+ 
+case $input in
+    [yY][eE][sS]|[yY])
+       # Delete all test_*.dat output files in this directory
+       for output_path in `find . -maxdepth 1 \( -type f -a -name 'test_*.dat' \)`
+       do
+           echo $output_path
+           rm $output_path
+       done
+       echo "Cleaned"
+       ;;
+    [nN][oO]|[nN])
+       echo "Aborted"
+       ;;
+    *)
+ echo "Invalid input"
+ exit 1
+ ;;
+esac

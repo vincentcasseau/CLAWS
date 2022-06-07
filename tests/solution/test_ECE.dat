@@ -1,0 +1,40 @@
+Loch Long
+	LW Area (km^2) = 44.0
+	LW Volume (M m^3) = 1758.0            
+	LW Mean depth (m) = 40.0
+	Tidal range (m) = 3.1            
+	Reference = Gillibrand, P.A., Gubbins, G.J., Greathead, C., Davies, I.M. (2002), Scottish executive locational guidelines for fish farming: predicted levels of nutrient enhancement and benthic impact, Scottish Fisheries Research Report Number 63 / 2002
+Salmon Farm
+	Site = Ardentinny
+		Longitude = -4.8941
+		Latitude = 56.0191                
+		Reference = 
+	Treatment = Sea Lice Treatment
+		Tarpaulin height (m) = [3. 3. 3.]            
+		Tarpaulin radius (m) = [19. 19. 19.]
+		Seeding times (h) = [0. 3. 6.]            
+		Number of particles = [10000 10000 10000]
+		Chemicals = ['Azamethiphos', 'Azamethiphos', 'Azamethiphos']            
+		Marker index = [-1 -1 -1]
+		Reference =             
+	Yearly fish production (tonnes) = 50.0            
+	Total nutrient discharge (kg N per tonne of fish produced) = 48.2            
+	Reference = 
+
+Existing biomass:
+Salmon Farm's ECE (kg/m^3) = 3.595962e-07
+Salmon Farm's ECE (ug/L) = 0.359596
+Salmon Farm's ECE (umol/L) = 0.025685
+Salmon Farm's nutrient enhancement index = 1
+
+Released biomass - Option 1:
+Salmon Farm's ECE (kg/m^3) = 1.438385e-06
+Salmon Farm's ECE (ug/L) = 1.438385
+Salmon Farm's ECE (umol/L) = 0.102742
+Salmon Farm's nutrient enhancement index = 1
+
+Released biomass - Total:
+Salmon Farm's ECE (kg/m^3) = 1.797981e-06
+Salmon Farm's ECE (ug/L) = 1.797981
+Salmon Farm's ECE (umol/L) = 0.128427
+Salmon Farm's nutrient enhancement index = 1

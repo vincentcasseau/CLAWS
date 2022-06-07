@@ -1,0 +1,8 @@
+Sea Lice Treatment
+	Tarpaulin height (m) = [3. 3. 3.]            
+	Tarpaulin radius (m) = [19. 19. 19.]
+	Seeding times (h) = [0. 3. 6.]            
+	Number of particles = [10000 10000 10000]
+	Chemicals = ['Deltamethrin', 'Deltamethrin', 'Deltamethrin']            
+	Marker index = [-1 -1 -1]
+	Reference = 
