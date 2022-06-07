@@ -8,7 +8,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-./Alluml
 build/
 develop-eggs/
 dist/
@@ -52,6 +51,7 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 tests/*.dat
+Alluml
 
 # Translations
 *.mo
