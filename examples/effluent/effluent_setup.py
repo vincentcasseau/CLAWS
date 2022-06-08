@@ -104,7 +104,7 @@ pixelsize_meters = 0.4
 depth_bin_range_meters = (-0.5, 0)
 
 # Quadtree structure
-quadtree = M0Quadtree(min_particles_per_bin=20)
+quadtree = M1Quadtree(min_particles_per_bin=20)
 
 # Length and concentration units to be used in plots & animations
 claws.output_options["length_units"] = "m"
