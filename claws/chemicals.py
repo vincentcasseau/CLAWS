@@ -15,7 +15,7 @@ __credits__ = ["Vincent Casseau", "Tom Scanlon"]
 __license__ = "GPLv2"
 __version__ = "1.2"
 __maintainer__ = "Vincent Casseau"
-__email__ = "hystrath@gmail.com"
+__email__ = "claws.scot@gmail.com"
 __status__ = "Production"
 
 
