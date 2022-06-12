@@ -17,7 +17,7 @@ from claws.treatments import *
 from claws.farm import nutrient_enhancement_index
 from claws.farms import *
 
-def print_biomass_info(biomass_tonne, header_string):
+def print_biomass_info(farm, loch, biomass_tonne, header_string):
     ece1 = farm.ece(biomass_tonne, loch, units='kg/m^3')
     ece2 = farm.ece(biomass_tonne, loch, units='ug/L')
     ece3 = farm.ece(biomass_tonne, loch)
@@ -45,12 +45,9 @@ if __name__ == "__main__":
     print(farm)
     
     existing_biomass_tonne = 500.
-    print_biomass_info(existing_biomass_tonne, "Existing biomass:")
+    print_biomass_info(farm, loch, existing_biomass_tonne, "Existing biomass:")
     
+    farm.set_total_nutrient_discharge(40.64)
     option1_biomass_tonne = 2000.
-    print_biomass_info(option1_biomass_tonne, "Released biomass - Option 1:")
-    
-    total_max_consented_biomass_tonne = existing_biomass_tonne + \
-        option1_biomass_tonne
-    print_biomass_info(total_max_consented_biomass_tonne,
-                       "Released biomass - Total:")
+    print_biomass_info(farm, loch, option1_biomass_tonne,
+                       "Released biomass - Option 1:")

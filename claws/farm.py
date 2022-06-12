@@ -63,7 +63,9 @@ def nutrient_enhancement_index(ECE):
 class Farm(object):
     def __init__(self, Site, Treatment=None, yearly_fish_production=0.0,
                  total_nutrient_discharge=0.0, input_mass_units='kg',
-                 reference=""):
+                 reference="", name=""):
+        # __name: string; Farm name. default is class name
+        self.__name = ' '.join(re.findall('([A-Z][a-z]+)', type(self).__name__))
         # __site_obj: Site object; Farm location
         self.__site_obj = Site
         # __treatment_obj: Treatment object; Treatment being applied at the
@@ -71,8 +73,8 @@ class Farm(object):
         self.__treatment_obj = Treatment
         # self.__yearly_fish_production: float; Yearly fish production (kg)
         self.__yearly_fish_production = yearly_fish_production
-        # Combined source of nitrogen from dissolved and particulate waste
-        # (units: kg of nitrogen per tonne of fish produced)
+        # Combined source of nitrogen from dissolved ammonia and particulate
+        # waste emissions (units: kg of nitrogen per tonne of fish produced)
         self.__total_nutrient_discharge = total_nutrient_discharge
         # __reference: string; Reference. default: empty string
         self.__reference = reference
@@ -100,23 +102,30 @@ class Farm(object):
     def total_nutrient_discharge(self):
         return self.__total_nutrient_discharge
         
+    def set_total_nutrient_discharge(self, value):
+        self.__total_nutrient_discharge = value
+        self._sanitize_total_nutrient_discharge()
+        
+    def _sanitize_total_nutrient_discharge(self):
+        assert(type(self.__total_nutrient_discharge) is float)
+        if self.__total_nutrient_discharge < 0.0:
+            raise InputError(self.__total_nutrient_discharge,
+                "Farm's total nutrient discharge should be a positive number")
+    
     def _sanitize(self, input_mass_units):
         assert(type(self.__yearly_fish_production) is float)
         if self.__yearly_fish_production < 0.0:
             raise InputError(self.__yearly_fish_production,
                 "Farm's yearly fish production should be a positive number")
                 
-        assert(type(self.__total_nutrient_discharge) is float)
-        if self.__total_nutrient_discharge < 0.0:
-            raise InputError(self.__total_nutrient_discharge,
-                "Farm's total nutrient discharge should be a positive number")
+        self._sanitize_total_nutrient_discharge()
         
         # Yearly fish production stored in kg
         self.__yearly_fish_production = convert_mass_to_prog_units(
             self.__yearly_fish_production, input_mass_units, self.name())
                 
     def name(self):
-        return ' '.join(re.findall('([A-Z][a-z]+)', type(self).__name__))
+        return self.__name
         
     def ece(self, total_max_consented_biomass, loch_obj,
             input_mass_units='tonne', units='umol/L'):
