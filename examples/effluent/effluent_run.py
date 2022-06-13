@@ -34,8 +34,9 @@ o = OceanDrift(loglevel=20, seed=seed)
 # Set OpenDrift configuration
 o.set_config('general:coastline_action', 'previous')
 o.set_config('general:use_auto_landmask', True)
-o.set_config('environment:constant:ocean_vertical_diffusivity', 0.001)
-o.set_config('drift:horizontal_diffusivity', 0.001)
+o.set_config('environment:constant:ocean_vertical_diffusivity',
+             vertical_diffusivity)
+o.set_config('drift:horizontal_diffusivity', horizontal_diffusivity)
 o.set_config('drift:half_life', chemicals[0].half_life())
 o.set_config('drift:advection_scheme', 'runge-kutta4')
 

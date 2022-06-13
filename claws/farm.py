@@ -5,8 +5,11 @@
 # Import modules
 import re
 import numpy as np
+
 from claws.custom_exceptions import InputError
 from claws.helpers import *
+from claws.treatments import NoTreatment
+from claws.waste_managers import NoWasteManager
 
 __author__ = "Vincent Casseau and Tom Scanlon"
 __copyright__ = "Copyright 2022, MTS-CFD Ltd."
@@ -25,10 +28,6 @@ __status__ = "Production"
 # Total nutrient discharge (kg N per tonne of fish produced)
 total_nutrient_discharge = {"salmon": 48.2, "halibut": 67.1, "turbot": 86.9,
                             "cod": 72.3, "haddock": 72.3}
-
-# Total nutrient discharge expressed as a 'species factor' relative to salmon
-species_factor = {"salmon": 1.0, "halibut": 1.4, "turbot": 1.8, "cod": 1.5,
-                  "haddock": 1.5}
 
 
 # ---------------------------------------------------------------------------- #
@@ -61,16 +60,20 @@ def nutrient_enhancement_index(ECE):
 # ---------------------------------------------------------------------------- #
 
 class Farm(object):
-    def __init__(self, Site, Treatment=None, yearly_fish_production=0.0,
+    def __init__(self, Site, Treatment=NoTreatment(),
+                 WasteManager=NoWasteManager(), yearly_fish_production=0.0,
                  total_nutrient_discharge=0.0, input_mass_units='kg',
                  reference="", name=""):
         # __name: string; Farm name. default is class name
-        self.__name = ' '.join(re.findall('([A-Z][a-z]+)', type(self).__name__))
+        self.__name = name
         # __site_obj: Site object; Farm location
         self.__site_obj = Site
         # __treatment_obj: Treatment object; Treatment being applied at the
-        # farm. default: None
+        # farm. default: NoTreatment()
         self.__treatment_obj = Treatment
+        # __waste_manager_obj: Waste manager object; Waste manager.
+        # default: NoWasteManager()
+        self.__waste_manager_obj = WasteManager
         # self.__yearly_fish_production: float; Yearly fish production (kg)
         self.__yearly_fish_production = yearly_fish_production
         # Combined source of nitrogen from dissolved ammonia and particulate
@@ -82,11 +85,12 @@ class Farm(object):
         self._sanitize(input_mass_units)
         
     def __str__(self):
-        return """{}\n\tSite = {}\n\tTreatment = {}\
+        return """{}\n\tSite = {}\n\tTreatment = {}\n\tWaste manager = {}\
             \n\tYearly fish production (tonnes) = {}\
             \n\tTotal nutrient discharge (kg N per tonne of fish produced) = {}\
             \n\tReference = {}""".format(self.name(),
             self.__site_obj.__str__(2), self.__treatment_obj.__str__(2),
+            self.__waste_manager_obj.__str__(2),
             self.yearly_fish_production('tonne'),
             self.__total_nutrient_discharge, self.__reference)
     
@@ -95,6 +99,9 @@ class Farm(object):
         
     def Treatment(self):
         return self.__treatment_obj
+        
+    def WasteManager(self):
+        return self.__waste_manager_obj
         
     def yearly_fish_production(self, units='kg'):
         return convert_mass(self.__yearly_fish_production, units, self.name())
@@ -113,6 +120,10 @@ class Farm(object):
                 "Farm's total nutrient discharge should be a positive number")
     
     def _sanitize(self, input_mass_units):
+        if not self.__name:
+            self.__name = ' '.join(re.findall('([A-Z][a-z]+)',
+                                   type(self).__name__))
+        
         assert(type(self.__yearly_fish_production) is float)
         if self.__yearly_fish_production < 0.0:
             raise InputError(self.__yearly_fish_production,

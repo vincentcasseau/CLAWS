@@ -26,7 +26,9 @@ __status__ = "Production"
 
 class Site(object):
     def __init__(self, longitude=None, latitude=None, x=None, y=None,
-                 proj_params=None, reference=""):
+                 proj_params=None, reference="", name=""):
+        # self.__name: string; Site name. default is class name
+        self.__name = name
         # __lon: float; Site longitude. default is None
         self.__lon = longitude
         # __lat: float; Site latitude. default is None
@@ -63,6 +65,10 @@ class Site(object):
         return self.__y
       
     def _sanitize(self, proj_params):
+        if not self.__name:
+            self.__name = ' '.join(re.findall('([A-Z][a-z]+)',
+                                   type(self).__name__))
+        
         if self.__lon is None and self.__lat is not None:
             raise InputError(self.__lon, 
                 "Longitude of Site {} must be given when the latitude is"
@@ -114,4 +120,4 @@ class Site(object):
             self.__lon, self.__lat = xy2lonlat(self.__x, self.__y, inverse=True)
                 
     def name(self):
-        return ' '.join(re.findall('([A-Z][a-z]+)', type(self).__name__))
+        return self.__name

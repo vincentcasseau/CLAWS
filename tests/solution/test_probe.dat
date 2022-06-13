@@ -1,5 +1,4 @@
 Probe
-	Location = Station
-		Longitude = -4.0
-		Latitude = 55.0                
-		Reference = 
+	Longitude = -4.0
+	Latitude = 55.0                
+	Reference = 

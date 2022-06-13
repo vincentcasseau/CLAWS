@@ -35,11 +35,12 @@ o = OceanDrift(loglevel=20, seed=seed)
 o.set_config('general:coastline_action', 'previous')
 o.set_config('drift:vertical_mixing', True)
 o.set_config('drift:advection_scheme', 'runge-kutta4')
-o.set_config('drift:horizontal_diffusivity', 0.1)
+o.set_config('drift:horizontal_diffusivity', horizontal_diffusivity)
 o.set_config('drift:half_life', chemicals[0].half_life())
 o.set_config('vertical_mixing:diffusivitymodel', 'environment')
 o.set_config('vertical_mixing:timestep', timestep_seconds)
-o.set_config('environment:fallback:ocean_vertical_diffusivity', 0.001)
+o.set_config('environment:fallback:ocean_vertical_diffusivity',
+             vertical_diffusivity)
 
 # List properties which can be configured
 o.list_configspec()

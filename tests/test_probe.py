@@ -10,10 +10,8 @@ __maintainer__ = "Vincent Casseau"
 __email__ = "claws.scot@gmail.com"
 __status__ = "Production"
 
-from claws.sites import *
 from claws.probe import *
 
 if __name__ == "__main__":
-    location = Station(longitude=-4.0, latitude=55.0)
-    probe = Probe(Station=location)
+    probe = Probe(longitude=-4.0, latitude=55.0)
     print(probe)

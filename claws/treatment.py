@@ -5,6 +5,7 @@
 # Import modules
 import re
 import numpy as np
+
 import claws.helpers as helpers
 from claws.custom_exceptions import InputError
 
@@ -25,7 +26,9 @@ __status__ = "Production"
 class Treatment(object):
     def __init__(self, tarpaulin_height, tarpaulin_radius, seeding_times,
                  nparticles, Chemicals, input_len_units='m',
-                 input_time_units='h', reference=""):
+                 input_time_units='h', reference="", name=""):
+        # self.__name: string; Treatment name. default is class name
+        self.__name = name
         # __tarpaulin_height: float; Tarpaulin height (meters)
         # A random number in the range [-__tarpaulin_height, 0] will the drawn
         # to decide on the initial depth position of a particle
@@ -52,7 +55,7 @@ class Treatment(object):
             \n{0}Tarpaulin radius (m) = {3}\n{0}Seeding times (h) = {4}\
             \n{0}Number of particles = {5}\n{0}Chemicals = {6}\
             \n{0}Marker index = {7}\n{0}Reference = {8}""".format(
-            helpers.indent(indent_lvl), self.name(),self.__tarpaulin_height,
+            helpers.indent(indent_lvl), self.name(), self.__tarpaulin_height,
             self.__tarpaulin_radius, self.__seeding_times, self.__nparticles,
             [chem.name() for chem in self.__chemicals_obj], self.__marker_index,
             self.__reference)
@@ -82,6 +85,10 @@ class Treatment(object):
             self.__marker_index[indices] = value
       
     def _sanitize(self, input_len_units, input_time_units):
+        if not self.__name:
+            self.__name = ' '.join(re.findall('([A-Z][a-z]+)',
+                                   type(self).__name__))
+                                   
         ntreatments = len(self.__seeding_times)
     
         if type(self.__tarpaulin_height) in [float, int]:
@@ -146,7 +153,7 @@ class Treatment(object):
         self.__marker_index = np.full(ntreatments, -1)
                 
     def name(self):
-        return ' '.join(re.findall('([A-Z][a-z]+)', type(self).__name__))
+        return self.__name
         
     def tarpaulin_area(self):
         return np.pi*self.__tarpaulin_radius**2

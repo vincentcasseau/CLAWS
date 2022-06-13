@@ -21,13 +21,13 @@ __status__ = "Production"
 
 class NoTreatment(Treatment):
     def __init__(self):
-        super().__init__(tarpaulin_height=0.0, tarpaulin_radius=0.0,
+        super().__init__(tarpaulin_height=1.0, tarpaulin_radius=1.0,
                          seeding_times=[], nparticles=[], Chemicals=[])
                          
-class SeaLiceTreatment(Treatment):
+class BathMedicine(Treatment):
     def __init__(self, tarpaulin_height, tarpaulin_radius, seeding_times,
                  nparticles, Chemicals, input_len_units='m',
-                 input_time_units='h', reference=""):
+                 input_time_units='h', reference="", name=""):
         super().__init__(tarpaulin_height, tarpaulin_radius, seeding_times,
                          nparticles, Chemicals, input_len_units,
-                         input_time_units, reference)
+                         input_time_units, reference, name)

@@ -14,7 +14,8 @@ from claws.chemicals import *
 from claws.treatments import *
 
 if __name__ == "__main__":
-    treatment = SeaLiceTreatment(tarpaulin_height=3., tarpaulin_radius=19.,
-                                 seeding_times=[0., 3., 6.], nparticles=10000,
-                                 Chemicals=Deltamethrin())
+    treatment = BathMedicine(tarpaulin_height=3., tarpaulin_radius=19.,
+                             seeding_times=[0., 3., 6.], nparticles=10000,
+                             Chemicals=Deltamethrin(),
+                             name="Sea Lice Treatment")
     print(treatment)

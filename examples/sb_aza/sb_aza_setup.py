@@ -42,8 +42,8 @@ start_time = datetime.datetime(2018,4,29,7,0)
 # Time-step (seconds)
 timestep_seconds = 600
 # Total simulation time (hours)
-run_duration_hours = 240. # 10 days; 8 days dosage (0,1,2,3,4,5,6,7) then 3 days free flow.
-#run_duration_hours = 6.
+# 10 days; 8 days dosage (0,1,2,3,4,5,6,7) then 3 days free flow.
+run_duration_hours = 240.
 # Period at which to create sub-histograms and plot concentration maps.
 # default is None, in which case the time_bins entry is considered
 # If both are None, only the last time step is considered
@@ -79,18 +79,26 @@ particle_weight_grams = 2.06e-2
 
 # Farms
 farms = [SalmonFarm(GreatCumbrae(),
-                    SeaLiceTreatment(tarpaulin_height=3.,
-                                     tarpaulin_radius=7.,
-                                     seeding_times=seeding_times,
-                                     nparticles=10000,
-                                     Chemicals=chemicals[0]))]
+                    BathMedicine(tarpaulin_height=3.,
+                                 tarpaulin_radius=7.,
+                                 seeding_times=seeding_times,
+                                 nparticles=10000,
+                                 Chemicals=chemicals[0],
+                                 name="Sea Lice Treatment"))]
+                                 
+                                 
+# ---------------------------------- PHYSICS --------------------------------- #
+# Horizontal diffusivity (m^2/s)
+horizontal_diffusivity = 0.1
+# Vertical diffusivity (m^2/s)
+vertical_diffusivity = 0.001
 
 
 # ------------------------------ POST-PROCESSING ----------------------------- #
 # Probe locations
-probes = [Probe(Station(longitude=-4.911, latitude=55.742)),
-          Probe(Station(longitude=-4.922, latitude=55.749)),
-          Probe(Station(longitude=-4.932, latitude=55.748))]
+probes = [Probe(longitude=-4.911, latitude=55.742),
+          Probe(longitude=-4.922, latitude=55.749),
+          Probe(longitude=-4.932, latitude=55.748)]
                       
 # Longitude/latitude bin size in meters
 pixelsize_meters = 35

@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Abstract class defining a Loch
+"""Root class defining a Loch
     - The Loch's low water area is used to evaluate the allowable zone of
       effect (AZE)
 """
@@ -26,9 +26,12 @@ __status__ = "Production"
 # ---------------------------------------------------------------------------- #
 
 class Loch(object):
-    def __init__(self, area, tidal_range, volume=np.nan, mean_depth=np.nan,
-                 input_len_units='m', input_area_units='km^2', 
-                 input_vol_units='M m^3', reference=""):
+    def __init__(self, area=np.inf, tidal_range=np.inf, volume=np.nan,
+                 mean_depth=np.nan, input_len_units='m',
+                 input_area_units='km^2', input_vol_units='M m^3', reference="",
+                 name=""):
+        # __name: string; Loch name. default is class name
+        self.__name = name
         # __area: float; Loch's low water (LW) area (m^2)
         self.__LWarea = area
         # __tidal_range: float; Loch's tidal range (m)
@@ -63,6 +66,10 @@ class Loch(object):
         return convert_len(self.__LWmean_depth, units, self.name())
         
     def _sanitize(self, input_len_units, input_area_units, input_vol_units):
+        if not self.__name:
+            self.__name = ' '.join(re.findall('([A-Z][a-z]+)',
+                                   type(self).__name__))
+        
         if np.isfinite(self.__LWarea):
             assert(type(self.__LWarea) is float)
             if self.__LWarea <= 0.0:
@@ -118,7 +125,7 @@ class Loch(object):
             self.__LWmean_depth = self.__LWvolume/self.__LWarea
         
     def name(self):
-        return ' '.join(re.findall('([A-Z][a-z]+)', type(self).__name__))
+        return self.__name
     
     def aze(self, units='m^2'):
         """Allowable zone of effect (AZE) of the Loch

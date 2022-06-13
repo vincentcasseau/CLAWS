@@ -16,9 +16,9 @@ import datetime
 from pyproj import Proj
 
 import claws.claws as claws
-from claws.sites import *
+from claws.site import *
 from claws.lochs import *
-from claws.chemicals import *
+from claws.chemical import *
 from claws.treatments import *
 from claws.farms import *
 from claws.probe import Probe
@@ -69,8 +69,8 @@ domain_extent = [lon_min, lon_max, lat_min, lat_max]
 
 # ------------------------------- FARM LOCATIONS ----------------------------- #
 # Chemicals used
-chemicals = [CustomSubstance(name='Effluent', eqs_72hr=0.2, mac_72hr=0.5,
-                             input_conc_units='ug/L', input_area_units='m^2')]
+chemicals = [ChemicalSubstance(name='Effluent', eqs_72hr=0.2, mac_72hr=0.5,
+                               input_conc_units='ug/L', input_area_units='m^2')]
 
 # Weight of a particle (grams)
 particle_weight_grams = 1e-6
@@ -79,24 +79,31 @@ particle_weight_grams = 1e-6
 seeding_times = [float(i) for i in range(12)]
 
 # Farms
-farms = [SalmonFarm(Station(x=20.8, y=10.2, proj_params=proj4_params),
-                    SeaLiceTreatment(tarpaulin_height=1.,
-                                     tarpaulin_radius=0.01,
-                                     seeding_times=seeding_times,
-                                     nparticles=500,
-                                     Chemicals=chemicals[0],
-                                     input_time_units='min'))]
+farms = [SalmonFarm(Site(x=20.8, y=10.2, proj_params=proj4_params),
+                    BathMedicine(tarpaulin_height=1.,
+                                 tarpaulin_radius=0.01,
+                                 seeding_times=seeding_times,
+                                 nparticles=500,
+                                 Chemicals=chemicals[0],
+                                 input_time_units='min'))]
+
+
+# ---------------------------------- PHYSICS --------------------------------- #
+# Horizontal diffusivity (m^2/s)
+horizontal_diffusivity = 0.001
+# Vertical diffusivity (m^2/s)
+vertical_diffusivity = 0.001
 
 
 # ------------------------------ POST-PROCESSING ----------------------------- #
 # Probe locations
-probes = [Probe(Station(x=19.0,  y=21.0,  proj_params=proj4_params)),
-          Probe(Station(x=19.0,  y=25.0,  proj_params=proj4_params)),
-          Probe(Station(x=19.0,  y=29.0,  proj_params=proj4_params)),
-          Probe(Station(x=19.0,  y=35.0,  proj_params=proj4_params)),
-          Probe(Station(x=19.0,  y=39.9,  proj_params=proj4_params)),
-          Probe(Station(x=20.15, y=10.15, proj_params=proj4_params)),
-          Probe(Station(x=0.01,  y=39.9,  proj_params=proj4_params))]
+probes = [Probe(x=19.0, y=21.0, proj_params=proj4_params),
+          Probe(x=19.0, y=25.0, proj_params=proj4_params),
+          Probe(x=19.0, y=29.0, proj_params=proj4_params),
+          Probe(x=19.0, y=35.0, proj_params=proj4_params),
+          Probe(x=19.0, y=39.9, proj_params=proj4_params),
+          Probe(x=20.15, y=10.15, proj_params=proj4_params),
+          Probe(x=0.01, y=39.9, proj_params=proj4_params)]
                       
 # Longitude/latitude bin size in meters
 pixelsize_meters = 0.4

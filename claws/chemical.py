@@ -32,8 +32,8 @@ class ChemicalSubstance(object):
                  mac_72hr=np.inf, eqs_aze=0.5, mac_aze=0.5, half_life=1.e10,
                  Loch=None, input_conc_units='ng/L', input_area_units='km^2',
                  input_time_units='day', reference=""):
-        # self.__name: string; Name of the chemical substance. default is empty
-        # string, ie., name of the derived class
+        # self.__name: string; Name of the chemical substance. default is class
+        # name
         self.__name = name
         # __eqs_Xhr: float; X-hour Environmental Quality Standard (EQS) in ng/L.
         # default: infinity
@@ -83,29 +83,29 @@ class ChemicalSubstance(object):
                     self.__reference == other.__reference)
         return False        
             
-    def eqs_3hour(self):
-        return self.__eqs_3hr
+    def eqs_3hour(self, units='ng/L'):
+        return convert_conc(self.__eqs_3hr, units, self.name())
         
-    def eqs_6hour(self):
-        return self.__eqs_6hr 
+    def eqs_6hour(self, units='ng/L'):
+        return convert_conc(self.__eqs_6hr, units, self.name()) 
         
-    def eqs_12hour(self):
-        return self.__eqs_12hr  
+    def eqs_12hour(self, units='ng/L'):
+        return convert_conc(self.__eqs_12hr, units, self.name()) 
         
-    def eqs_24hour(self):
-        return self.__eqs_24hr
+    def eqs_24hour(self, units='ng/L'):
+        return convert_conc(self.__eqs_24hr, units, self.name())
         
-    def eqs_48hour(self):
-        return self.__eqs_48hr 
+    def eqs_48hour(self, units='ng/L'):
+        return convert_conc(self.__eqs_48hr, units, self.name())
         
-    def eqs_72hour(self):
-        return self.__eqs_72hr
+    def eqs_72hour(self, units='ng/L'):
+        return convert_conc(self.__eqs_72hr, units, self.name())
         
     def eqs_aze(self, units='m^2'):
         return convert_area(self.__eqs_aze, units, self.name())
       
-    def mac_72hour(self):
-        return self.__mac_72hr
+    def mac_72hour(self, units='ng/L'):
+        return convert_conc(self.__mac_72hr, units, self.name())
         
     def mac_aze(self, units='m^2'):
         return convert_area(self.__mac_aze, units, self.name())

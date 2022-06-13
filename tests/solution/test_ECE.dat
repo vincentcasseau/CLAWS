@@ -16,6 +16,8 @@ Salmon Farm
 		Number of particles = [10000 10000 10000]
 		Chemicals = ['Azamethiphos', 'Azamethiphos', 'Azamethiphos']            
 		Marker index = [-1 -1 -1]
+		Reference = 
+	Waste manager = No Waste Manager            
 		Reference =             
 	Yearly fish production (tonnes) = 50.0            
 	Total nutrient discharge (kg N per tonne of fish produced) = 48.2            

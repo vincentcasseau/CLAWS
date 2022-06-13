@@ -19,12 +19,6 @@ __status__ = "Production"
 # Classes 
 # ---------------------------------------------------------------------------- #
 
-class Station(Site):
-    def __init__(self, longitude=None, latitude=None, x=None, y=None,
-                 proj_params=None, reference=""):
-        super().__init__(longitude=longitude, latitude=latitude, x=x, y=y,
-                         proj_params=proj_params, reference=reference)
-        
 class GreatCumbrae(Site):
     def __init__(self):
         super().__init__(longitude=-4.898109, latitude=55.75061)

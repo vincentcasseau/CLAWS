@@ -13,11 +13,8 @@ __status__ = "Production"
 # Import modules
 import os
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.colors as colors
 import datetime
 
-import cartopy.crs as ccrs
 import opendrift
 from pyproj import Proj
 
@@ -26,7 +23,6 @@ import claws.claws as claws
 import claws.opendrift_wrapper as od_wrapper
 import claws.postpro as postpro
 from claws.treatment import compute_marker_indices
-from claws.farm import nutrient_enhancement_index
 from claws.probes import *
 from sb_aza_setup import *
 
@@ -124,13 +120,11 @@ for sp in range(len(chemicals)):
 
     # Compute area (in sq meters) where concentration exceeds EQS
     eqs = chemicals[sp].eqs_72hour()
-    eqs_aze = chemicals[sp].eqs_aze()
     area_over_eqs = od_wrapper.get_series_area_over_limit(
         np.abs(concentration[0]), pixelsize_m=pixelsize_meters, limit=eqs)
 
     # Compute area (in sq meters) where concentration exceeds MAC
     mac = chemicals[sp].mac_72hour()
-    mac_aze = chemicals[sp].mac_aze()
     area_over_mac = od_wrapper.get_series_area_over_limit(
         np.abs(concentration[0]), pixelsize_m=pixelsize_meters, limit=mac)
 
@@ -167,8 +161,8 @@ for sp in range(len(chemicals)):
     peakconc = od_wrapper.get_series_peak_concentration(concentration[0])
 
     # Compute particle vertical distribution
-    bar_height, zmax, nmax, vdist = od_wrapper.get_series_vertical_distribution(
-        outfile=working_folder+outfile, nsimulations=nsimulations, ndt=ndt,
+    bar_height, nmax, vdist = od_wrapper.get_series_vertical_distribution(
+        outfile=working_folder + outfile, nsimulations=nsimulations, ndt=ndt,
         marker_index=sp, maxdepth=-20.0)
 
     # Conversion to user-defined output units  
@@ -180,182 +174,43 @@ for sp in range(len(chemicals)):
     area_over_mac *= lf**2 
     quadtree_area_over_mac *= lf**2
 
-    if np.isfinite(chemicals[sp].eqs_3hour()):
-        eqs_3hour = chemicals[sp].eqs_3hour()*cf
-    if np.isfinite(chemicals[sp].eqs_72hour()):    
-        eqs_72hour = chemicals[sp].eqs_72hour()*cf
-    if np.isfinite(chemicals[sp].mac_72hour()):    
-        mac_72hour = chemicals[sp].mac_72hour()*cf
-    eqs_aze *= lf**2
-    mac_aze *= lf**2
-
 
 # ---------------------------------------------------------------------------- #
 # Plots 
 # ---------------------------------------------------------------------------- #
 
-    globe = ccrs.Mercator().globe
-
-    # Pre-compute all-time min and max concentrations to use the same scale
-    # throughout
-    cminmin, cmaxmax, quadtree_peakconc = \
-        od_wrapper.get_alltime_min_max_concentrations(
-            concentration, quadtree_conc_lvl, quadtree)
-
     # Plot concentration on terrain map for all output times
-    offset = 1
-    for i, tbin in enumerate(claws.output_options["time_bins"]):
-        fig, ax = postpro.create_terrain(corners=domain_extent,
-                                         seeding_locations=farms,
-                                         display_probe_markers=True,
-                                         probes=probes)
+    quadtree_peakconc = postpro.plot_concentration_map(
+        working_folder + file_prefix, domain_extent, concentration,
+        quadtree_conc_lvl, chemicals[sp], quadtree, farms, probes)
 
-        # Fix the scale for all plots
-        axmin, axmax = postpro.round_logscale_axis([cminmin, cmaxmax])
-        
-        # Superimpose histograms on top of the root histogram
-        conc = concentration[0][tbin].transpose()
-        c = ax.pcolormesh(concentration[0].lon_bin, concentration[0].lat_bin,
-                          conc.where(conc>0), cmap='jet',
-                          norm=colors.LogNorm(vmin=axmin, vmax=axmax),
-                          transform=ccrs.PlateCarree(globe=globe))
-                          
-        if quadtree.is_active():
-            for hi in np.arange(offset, offset + len(quadtree_conc_lvl[1+i])):
-                conc = concentration[hi].transpose()
-                c = ax.pcolormesh(concentration[hi].lon_bin,
-                                  concentration[hi].lat_bin,
-                                  conc.where(conc>0), cmap='jet',
-                                  norm=colors.LogNorm(vmin=axmin, vmax=axmax),
-                                  transform=ccrs.PlateCarree(globe=globe))
-                              
-            # Increment histogram offset
-            offset += len(quadtree_conc_lvl[1+i])
-
-        # Set colorbar and save
-        cbar = fig.colorbar(c, ax=ax, orientation="horizontal", shrink=0.65,
-                            pad=0.075, aspect=25, extend='min')
-        cbar.set_label('{} concentration {}'.format(species_name,
-            claws.output_options["concentration_units"]))
-        plt.title(np.datetime64(concentration[0].time[tbin].item(),
-            'ns').astype('datetime64[us]').astype(datetime.datetime).strftime(
-            '%d %B %Y, %I:%M:%S %p'))   
-        plt.savefig(working_folder + file_prefix +
-            'concentration_{:04d}.png'.format(tbin))
-        plt.close()
-            
     # Plot concentration time series at probe stations
     t = np.linspace(start=0.0, stop=run_duration_sec*tf, num=ndt)
     plot_probes_concentration(probes, working_folder, t, time_last_treatment,
                               chemicals[sp], pixelsize_meters, dz, quadtree,
                               ylabel='{} concentration'.format(species_name),
-                              filename=file_prefix+'probe')
+                              filename=file_prefix + 'probe')
 
     # Plot time series of peak concentration
-    fig, ax = plt.subplots(1)
-    psize_str = ('%f'%pixelsize_meters).rstrip('0').rstrip('.')
-    dz_str = ('%f'%dz).rstrip('0').rstrip('.')
-    plt.plot(t, peakconc, color='black', linestyle='-', lw=1,
-             label='{0} m x {0} m x {1} m'.format(psize_str, dz_str))
-    if quadtree.is_active():
-        plt.scatter(claws.output_options["time_bins"]*tf,
-                    quadtree_peakconc, color='blue', marker='+',
-                    label='quadtree (max depth: {})'.format(
-                        quadtree.max_quadtree_depth()))         
-    if np.isfinite(chemicals[sp].eqs_3hour()):
-        plt.axhline(y=eqs_3hour, color='green', linestyle='dotted',
-                    label='3-hour EQS')
-    if np.isfinite(chemicals[sp].eqs_72hour()):
-        plt.axhline(y=eqs_72hour, color='green', linestyle='--',
-                    label='72-hour EQS')
-    if np.isfinite(chemicals[sp].mac_72hour()):
-        plt.axhline(y=mac_72hour, color='red', linestyle='--',
-                    label='72-hour MAC')
-    ax.set_yscale('log')
-    postpro.round_logscale_yaxis(ax)
-    plt.tick_params(axis='y', which='minor')
-    ax.yaxis.set_minor_formatter('')
-    postpro.print_last_treatment(plt, ax, time_last_treatment,
-                                 label='Last treatment')
-    plt.xlabel('Time {}'.format(claws.output_options["time_units"]))
-    plt.ylabel('Peak {} concentration {}'.format(species_name,
-        claws.output_options["concentration_units"]))
-    plt.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left",
-               mode="expand", borderaxespad=0, ncol=2)
-    plt.savefig(working_folder + file_prefix + 'peak_concentration.png')
-    plt.close()
+    postpro.plot_series_peak_concentration(working_folder + file_prefix, t,
+        peakconc, quadtree_peakconc, chemicals[sp], quadtree, pixelsize_meters,
+        dz, time_last_treatment, last_treatment_label='Last treatment')
 
     # Plot time series of area greater than EQS
-    fig, ax = plt.subplots(1)
-    plt.plot(t, area_over_eqs, color='black', linestyle='-', lw=1,
-             label='{0} m x {0} m x {1} m'.format(psize_str, dz_str))
-    if quadtree.is_active():
-        plt.scatter(claws.output_options["time_bins"]*tf,
-                    quadtree_area_over_eqs,
-                    color='blue', marker='+',
-                    label='quadtree (max depth: {})'.format(
-                        quadtree.max_quadtree_depth()))  
-    plt.axhline(y=eqs_aze, color='g', linestyle='--', label='72-hour EQS AZE')
-    ax.set_yscale('log')    
-    postpro.round_logscale_yaxis(ax)  
-    plt.tick_params(axis='y', which='minor')
-    ax.yaxis.set_minor_formatter('')
-    postpro.print_last_treatment(plt, ax, time_last_treatment,
-                                 label='Last treatment')
-    plt.xlabel('Time {}'.format(claws.output_options["time_units"]))
-    plt.ylabel('Area > EQS ({}$^2$)'.format(
-        claws.output_options["length_units"]))
-    plt.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left",
-               mode="expand", borderaxespad=0, ncol=2)
-    plt.savefig(working_folder + file_prefix + 'area_over_EQS.png')
-    plt.close()
-
+    postpro.plot_series_area_greater_EQS(working_folder + file_prefix, t,
+        area_over_eqs, quadtree_area_over_eqs, chemicals[sp], quadtree,
+        pixelsize_meters, dz, time_last_treatment,
+        last_treatment_label='Last treatment')
+        
     # Plot time series of area greater than MAC
-    fig, ax = plt.subplots(1)
-    plt.plot(t, area_over_mac, color='black', linestyle='-', lw=1,
-             label='{0} m x {0} m x {1} m'.format(psize_str, dz_str))
-    if quadtree.is_active():
-        plt.scatter(claws.output_options["time_bins"]*tf,
-                    quadtree_area_over_mac,
-                    color='blue', marker='+',
-                    label='quadtree (max depth: {})'.format(
-                        quadtree.max_quadtree_depth())) 
-    plt.axhline(y=mac_aze, color='r', linestyle='--', label='72-hour MAC AZE')
-    ax.set_yscale('log')    
-    postpro.round_logscale_yaxis(ax)  
-    plt.tick_params(axis='y', which='minor')
-    ax.yaxis.set_minor_formatter('')
-    postpro.print_last_treatment(plt, ax, time_last_treatment,
-                                 label='Last treatment')
-    plt.xlabel('Time {}'.format(claws.output_options["time_units"]))
-    plt.ylabel('Area > MAC ({}$^2$)'.format(
-        claws.output_options["length_units"]))
-    plt.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left",
-               mode="expand", borderaxespad=0, ncol=2)
-    plt.savefig(working_folder + file_prefix + 'area_over_MAC.png')
-    plt.close()
+    postpro.plot_series_area_greater_MAC(working_folder + file_prefix, t,
+        area_over_mac, quadtree_area_over_mac, chemicals[sp], quadtree,
+        pixelsize_meters, dz, time_last_treatment,
+        last_treatment_label='Last treatment')
 
     # Plot vertical distribution bar graph for all output times
-    for tbin in claws.output_options["time_bins"]:
-        arr = np.array([100.*v[tbin].item() for v in vdist])
-        len_arr = len(arr)
-        zbin = np.linspace(start=0, stop=-bar_height*(len_arr-1), num=len_arr)
-        
-        fig, ax = plt.subplots(1)
-        plt.barh(zbin, arr, height=-bar_height, facecolor='navy', alpha=0.35,
-                 lw=1, edgecolor='k', align='edge')
-        nyticks, mltp = postpro.compute_nticks(len_arr)
-        plt.yticks(np.linspace(start=0, stop=-bar_height*mltp*(nyticks-1),
-                               num=nyticks))
-        plt.xlabel('Number of particles (%)')
-        plt.ylabel('Depth (m)')
-        plt.xlim([0, min(100, round(100.*nmax,0)//5*5.+5.)])
-        plt.title(np.datetime64(vdist[0].time[tbin].item(), 'ns').astype(
-                  'datetime64[us]').astype(datetime.datetime).strftime(
-                  '%d %B %Y, %I:%M:%S %p')) 
-        plt.savefig(working_folder + file_prefix + 'vertical_distribution'\
-                        '_{:04d}.png'.format(tbin))
-        plt.close()
+    postpro.plot_vertical_distribution_bar_graph(working_folder + file_prefix,
+                                                 vdist, bar_height, nmax)
 
     # Animate concentration on terrain map
     postpro.animate_concentration_terrain(working_folder + file_prefix)

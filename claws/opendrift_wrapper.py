@@ -309,7 +309,7 @@ def get_series_vertical_distribution(outfile, nsimulations, ndt,
         zmax += dz
         nvbins -= 1
     
-    return [dz, round(zmax,2), nmax, vdist[:nvbins]]
+    return [dz, nmax, vdist[:nvbins]]
 
 def is_point_in_subhisto_bbox(pt, subh):
     """Determine if a point belongs inside the bounding box of a sub-histogram.

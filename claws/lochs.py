@@ -20,7 +20,6 @@ Reference:
 """
 
 # Import modules
-import numpy as np
 from claws.loch import Loch
 
 __author__ = "Vincent Casseau and Tom Scanlon"
@@ -34,57 +33,50 @@ __status__ = "Production"
 
 
 # ---------------------------------------------------------------------------- #
+# Variable 
+# ---------------------------------------------------------------------------- #
+
+_refEdwardsSharples = 'Edwards, A. and Sharples, F. (1986), '\
+                      '"Scottish Sea Lochs: a Catalogue", Scottish Marine '\
+                      'Biological Association / Nature Conservancy Council, '\
+
+# ---------------------------------------------------------------------------- #
 # Classes 
 # ---------------------------------------------------------------------------- #
 
 class UndefinedLoch(Loch):
-    def __init__(self):
-        super().__init__(area=np.inf, tidal_range=np.inf)
+    def __init__(self, name=""):
+        super().__init__(name=name)
         
 class LochAlsh(Loch):
     def __init__(self):
         super().__init__(area=27.5, tidal_range=4.6, volume=1134.3,
                          mean_depth=41.2,
-                         reference="Edwards, A. and Sharples, F. (1986) "\
-                         "Scottish Sea Lochs: a Catalogue, Scottish Marine "\
-                         "Biological Association/Nature Conservancy Council, "\
-                         "p. 47") 
+                         reference=_refEdwardsSharples + "p. 47") 
             
 class LochCreran(Loch):
     def __init__(self):
         super().__init__(area=13.3, tidal_range=3.3, volume=177.6,
                          mean_depth=13.4,
-                         reference="Edwards, A. and Sharples, F. (1986) "\
-                         "Scottish Sea Lochs: a Catalogue, Scottish Marine "\
-                         "Biological Association/Nature Conservancy Council, "\
-                         "p. 84")            
-
+                         reference=_refEdwardsSharples + "p. 84") 
+                         
 class LochDuich(Loch):
     def __init__(self):
         super().__init__(area=11.6, tidal_range=4.6, volume=512.2,
                          mean_depth=44.2,
-                         reference="Edwards, A. and Sharples, F. (1986) "\
-                         "Scottish Sea Lochs: a Catalogue, Scottish Marine "\
-                         "Biological Association/Nature Conservancy Council, "\
-                         "p. 93")
+                         reference=_refEdwardsSharples + "p. 93")
             
 class LochHourn(Loch):
     def __init__(self):
         super().__init__(area=33.7, tidal_range=4.2, volume=2005.5,
                          mean_depth=59.5,
-                         reference="Edwards, A. and Sharples, F. (1986) "\
-                         "Scottish Sea Lochs: a Catalogue, Scottish Marine "\
-                         "Biological Association/Nature Conservancy Council, "\
-                         "p. 133")
+                         reference=_refEdwardsSharples + "p. 133")
             
 class LochLinnhe(Loch):
     def __init__(self):
         super().__init__(area=31.7, tidal_range=3.7, volume=1344.7,
                          mean_depth=42.5,
-                         reference="Edwards, A. and Sharples, F. (1986) "\
-                         "Scottish Sea Lochs: a Catalogue, Scottish Marine "\
-                         "Biological Association/Nature Conservancy Council, "\
-                         "p. 151")
+                         reference=_refEdwardsSharples + "p. 151")
                          
 class LochLong(Loch):
     def __init__(self):
@@ -101,7 +93,4 @@ class LochMelfort(Loch):
     def __init__(self):
         super().__init__(area=9.3, tidal_range=2.3, volume=260.5,
                          mean_depth=27.9,
-                         reference="Edwards, A. and Sharples, F. (1986) "\
-                         "Scottish Sea Lochs: a Catalogue, Scottish Marine "\
-                         "Biological Association/Nature Conservancy Council, "\
-                         "p. 160")
+                         reference=_refEdwardsSharples + "p. 160")

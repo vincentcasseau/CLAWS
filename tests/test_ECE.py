@@ -33,11 +33,12 @@ if __name__ == "__main__":
     loch = LochLong()
     
     farm = SalmonFarm(Ardentinny(),
-                      SeaLiceTreatment(tarpaulin_height=3.,
-                                       tarpaulin_radius=19.,
-                                       seeding_times=[0., 3., 6.],
-                                       nparticles=10000,
-                                       Chemicals=Azamethiphos()),
+                      BathMedicine(tarpaulin_height=3.,
+                                   tarpaulin_radius=19.,
+                                   seeding_times=[0., 3., 6.],
+                                   nparticles=10000,
+                                   Chemicals=Azamethiphos(),
+                                   name="Sea Lice Treatment"),
                       yearly_fish_production=50.,
                       input_mass_units='tonne')
     

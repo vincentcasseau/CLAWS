@@ -176,7 +176,7 @@ class Quadtree(object):
             self.__concentration_target, input_conc_units, self.name())
         
     def name(self):
-        return ' '.join(re.findall('([A-Z][a-z]+)', type(self).__name__))
+        return type(self).__name__
         
     def update(self, pixelsize_m, bin_depth, mass_particle, seeding_radius):
         """Apply quadtree method defined in the sanitise function and return the

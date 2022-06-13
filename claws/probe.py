@@ -9,9 +9,9 @@ import matplotlib.pyplot as plt
 
 from claws.helpers import indent
 from claws.custom_exceptions import InputError
-from claws.claws import output_options, \
-    get_unit_factors
+from claws.claws import output_options, get_unit_factors
 import claws.opendrift_wrapper as wrapper
+from claws.site import Site
 import claws.postpro as postpro
 
 __author__ = "Vincent Casseau and Tom Scanlon"
@@ -28,10 +28,12 @@ __status__ = "Production"
 # Classes 
 # ---------------------------------------------------------------------------- #
 
-class Probe(object):
-    def __init__(self, Station):
-        # __station_obj: Station object; Monitoring station location
-        self.__station_obj = Station
+class Probe(Site):
+    def __init__(self, longitude=None, latitude=None, x=None, y=None,
+                 proj_params=None, reference="", name=""):
+        super().__init__(longitude=longitude, latitude=latitude, x=x, y=y,
+                         proj_params=proj_params, reference=reference)
+        
         # __is_inside_domain: bool; Whether or not a probe is indide the
         # 'concentration domain'. default is False/outside
         self.__is_inside_domain = False
@@ -39,21 +41,6 @@ class Probe(object):
         # latitudinally. default is -1 (not set)
         self.__lonbin = -1
         self.__latbin = -1
-        
-        self._sanitize()
-        
-    def __str__(self, indent_lvl=1):
-        return """{1}\n{0}Location = {2}""".format(indent(indent_lvl),
-            self.name(), self.__station_obj.__str__(2))
-    
-    def Station(self):
-        return self.__station_obj
-        
-    def _sanitize(self):
-        pass
-                
-    def name(self):
-        return ' '.join(re.findall('([A-Z][a-z]+)', type(self).__name__))
         
     def check_validity(self, corners, concentration):
         """Determine whether or not a probe is inside the 'concentration
@@ -72,8 +59,8 @@ class Probe(object):
         latext = abs(corners[3] - corners[2])
         
         # Shorthands
-        lon = self.__station_obj.lon()
-        lat = self.__station_obj.lat()
+        lon = self.lon()
+        lat = self.lat()
         
         # Extract probe longitude and latitude bin indices
         lonbin = int((lon - corners[0])/lonext*nlonbins)

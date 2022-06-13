@@ -13,7 +13,6 @@ case $input in
        do
            script_name=${script_path%.*}
            echo $script_path
-           echo $script_name.dat
            python $script_path > $script_name.dat 2>&1
        done
        ;;
