@@ -182,7 +182,7 @@ for sp in range(len(chemicals)):
     # Plot concentration on terrain map for all output times
     quadtree_peakconc = postpro.plot_concentration_map(
         working_folder + file_prefix, domain_extent, concentration,
-        quadtree_conc_lvl, Loch, chemicals[sp], quadtree, farms, probes)
+        quadtree_conc_lvl, loch, chemicals[sp], quadtree, farms, probes)
 
     # Plot concentration time series at probe stations
     t = np.linspace(start=0.0, stop=run_duration_sec*tf, num=ndt)

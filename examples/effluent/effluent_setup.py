@@ -68,6 +68,9 @@ domain_extent = [lon_min, lon_max, lat_min, lat_max]
 
 
 # ------------------------------- FARM LOCATIONS ----------------------------- #
+# Loch name
+loch = UndefinedLoch(name='Effluent outlet')
+
 # Chemicals used
 chemicals = [ChemicalSubstance(name='Effluent', eqs_72hr=0.2, mac_72hr=0.5,
                                input_conc_units='ug/L', input_area_units='m^2')]

@@ -175,15 +175,36 @@ def create_terrain(corners, loch_obj, seeding_locations, tile_style='',
         
         globe: a CRS globe; default is None
     """
-    # Add small margins (default 0%) around the domain's corners
+    # Store a backup of the original lon/lat min/max values
+    lon_min_ini, lon_max_ini, lat_min_ini, lat_max_ini = corners
+    # Add small margins (default 2%) around the domain's corners
     lon_min, lon_max, lat_min, lat_max = corners
-    offset_pct = 0.
-    lon_offset = (lon_max - lon_min)*offset_pct
-    lat_offset = (lat_max - lat_min)*offset_pct
+    ratio = dlon_to_dlat_ratio(lat_min, lat_max)
+    dlon = lon_max - lon_min
+    dlat = lat_max - lat_min
+    
+    offset_pct = 0.02
+    lon_offset = dlon*offset_pct
+    lat_offset = dlat*offset_pct*ratio
     domain_w_margins = [lon_min - lon_offset, lon_max + lon_offset,
                         lat_min - lat_offset, lat_max + lat_offset]
     lon_min, lon_max, lat_min, lat_max = domain_w_margins
-                        
+    
+    # Force an aspect ratio of at least 1.28 for best render
+    target_aspect_ratio = 1.28
+    dlon = lon_max - lon_min
+    dlat = lat_max - lat_min
+    lon_mid = lon_min + dlon/2.
+    ratio = dlon_to_dlat_ratio(lat_min, lat_max)
+    aspect_ratio = dlon/(dlat*ratio)
+    if aspect_ratio < target_aspect_ratio:
+        # Increase longitude range (lon_mid and ratio are unchanged)
+        dlon = dlat*ratio*target_aspect_ratio
+        lon_min = lon_mid - dlon/2.
+        lon_max = lon_mid + dlon/2.
+        domain_w_margins[0] = lon_min
+        domain_w_margins[1] = lon_max
+    
     # Create figure
     figsize = [9., 6.8]
     fig = plt.figure(figsize=figsize)
@@ -244,8 +265,44 @@ def create_terrain(corners, loch_obj, seeding_locations, tile_style='',
                                          domain_w_margins[3], False,
                                          lscale='full', globe=globe)
     
-    # Use the cartopy interface to create a matplotlib transform object
-    # for the Geodetic coordinate system. 
+    # Add frame to delineate the domain extent
+    ax.plot([lon_min_ini, lon_min_ini], [lat_min_ini, lat_max_ini],
+             color='grey', lw=0.5, alpha=0.5, transform=custom_crs, zorder=3)
+    ax.plot([lon_max_ini, lon_max_ini], [lat_min_ini, lat_max_ini],
+             color='grey', lw=0.5, alpha=0.5, transform=custom_crs, zorder=3)
+    ax.plot([lon_min_ini, lon_max_ini], [lat_min_ini, lat_min_ini],
+             color='grey', lw=0.5, alpha=0.5, transform=custom_crs, zorder=3)
+    ax.plot([lon_min_ini, lon_max_ini], [lat_max_ini, lat_max_ini],
+             color='grey', lw=0.5, alpha=0.5, transform=custom_crs, zorder=3)
+    
+    # Blur domain area that is outside the original domain
+    rectangle = Rectangle((lon_min, lat_min),
+                          width=lon_max - lon_min,
+                          height=lat_min_ini - lat_min,
+                          facecolor='white', alpha=0.65, edgecolor='none',
+                          clip_on=False, transform=custom_crs, zorder=2)
+    ax.add_patch(rectangle)
+    rectangle = Rectangle((lon_min, lat_max_ini),
+                          width=lon_max - lon_min,
+                          height=lat_max - lat_max_ini,
+                          facecolor='white', alpha=0.65, edgecolor='none',
+                          clip_on=False, transform=custom_crs, zorder=2)
+    ax.add_patch(rectangle)
+    rectangle = Rectangle((lon_min, lat_min_ini),
+                          width=lon_min_ini - lon_min,
+                          height=lat_max_ini - lat_min_ini,
+                          facecolor='white', alpha=0.65, edgecolor='none',
+                          clip_on=False, transform=custom_crs, zorder=2)
+    ax.add_patch(rectangle)
+    rectangle = Rectangle((lon_max_ini, lat_min_ini),
+                          width=lon_max - lon_max_ini,
+                          height=lat_max_ini - lat_min_ini,
+                          facecolor='white', alpha=0.65, edgecolor='none',
+                          clip_on=False, transform=custom_crs, zorder=2)
+    ax.add_patch(rectangle)
+             
+    # Use the cartopy interface to create a matplotlib transform object for the
+    # Geodetic coordinate system. 
     geodetic_transform = custom_crs._as_mpl_transform(ax)
     
     if display_probe_markers:
@@ -253,7 +310,7 @@ def create_terrain(corners, loch_obj, seeding_locations, tile_style='',
             for P in probes:    
                 # Print probe marker: '+'
                 ax.plot(P.lon(), P.lat(), marker='+', color='black',
-                         markersize=4, alpha=0.7, transform=custom_crs)
+                        markersize=4, alpha=0.7, transform=custom_crs)
     
     # Add markers and text at seeding locations
     for i, loc in enumerate(seeding_locations):
@@ -269,7 +326,7 @@ def create_terrain(corners, loch_obj, seeding_locations, tile_style='',
             continue
         # Seeding location marker
         ax.plot(lon, lat, marker='o', color='black', markersize=4, alpha=0.7,
-                 transform=custom_crs)
+                transform=custom_crs)
         # Seeding location name
         if display_locations:
             if abbreviate_locations:
@@ -381,7 +438,7 @@ def draw_frame(ax, corners, lon_breaks, lat_breaks, custom_crs=ccrs.Geodetic(),
                        (lon_breaks[1], lat_breaks[0]),
                        (lon_breaks[0], lat_breaks[0])],
                        facecolor=colour, edgecolor='black', clip_on=False,
-                       ls='solid', lw=1, transform=custom_crs)
+                       ls='solid', lw=1, transform=custom_crs, zorder=4)
     ax.add_patch(polygon)
     
     polygon = Polygon([(lon_breaks[0] - frame_width,
@@ -390,7 +447,7 @@ def draw_frame(ax, corners, lon_breaks, lat_breaks, custom_crs=ccrs.Geodetic(),
                        (lon_breaks[0], lat_breaks[1]),
                        (lon_breaks[0] - frame_width, lat_breaks[1])],
                        facecolor='white', edgecolor='black', clip_on=False,
-                       ls='solid', lw=1, transform=custom_crs)
+                       ls='solid', lw=1, transform=custom_crs, zorder=4)
     ax.add_patch(polygon)
     
     # Bottom bar
@@ -401,7 +458,7 @@ def draw_frame(ax, corners, lon_breaks, lat_breaks, custom_crs=ccrs.Geodetic(),
                               width=to_lon - from_lon,
                               height=frame_height, facecolor=colour,
                               edgecolor='black', clip_on=False, ls='solid',
-                              lw=1, transform=custom_crs)
+                              lw=1, transform=custom_crs, zorder=4)
         ax.add_patch(rectangle)
         
     colour = 'white' if colour == 'black' else 'black'
@@ -411,7 +468,7 @@ def draw_frame(ax, corners, lon_breaks, lat_breaks, custom_crs=ccrs.Geodetic(),
                        (lon_breaks[-1], lat_breaks[0]),
                        (lon_breaks[-2], lat_breaks[0])],
                        facecolor=colour, edgecolor='black', clip_on=False,
-                       ls='solid', lw=1, transform=custom_crs)
+                       ls='solid', lw=1, transform=custom_crs, zorder=4)
     ax.add_patch(polygon)
     colour = 'white' if colour == 'black' else 'black'
     polygon = Polygon([(lon_breaks[-1], lat_breaks[0]),
@@ -420,7 +477,7 @@ def draw_frame(ax, corners, lon_breaks, lat_breaks, custom_crs=ccrs.Geodetic(),
                        (lon_breaks[-1] + frame_width, lat_breaks[1]),
                        (lon_breaks[-1], lat_breaks[1])],
                         facecolor=colour, edgecolor='black', clip_on=False,
-                        ls='solid', lw=1, transform=custom_crs)
+                        ls='solid', lw=1, transform=custom_crs, zorder=4)
     ax.add_patch(polygon)
         
     # Right bar
@@ -431,7 +488,7 @@ def draw_frame(ax, corners, lon_breaks, lat_breaks, custom_crs=ccrs.Geodetic(),
                               width=frame_width,
                               height=to_lat - from_lat, facecolor=colour,
                               edgecolor='black', clip_on=False, ls='solid',
-                              lw=1, transform=custom_crs)
+                              lw=1, transform=custom_crs, zorder=4)
         ax.add_patch(rectangle)
         
     colour = 'white' if colour == 'black' else 'black'
@@ -441,7 +498,7 @@ def draw_frame(ax, corners, lon_breaks, lat_breaks, custom_crs=ccrs.Geodetic(),
                         lat_breaks[-1] + frame_height),
                        (lon_breaks[-1], lat_breaks[-1])],
                        facecolor=colour, edgecolor='black', clip_on=False,
-                       ls='solid', lw=1, transform=custom_crs)
+                       ls='solid', lw=1, transform=custom_crs, zorder=4)
     ax.add_patch(polygon)
     colour = 'white' if colour == 'black' else 'black'
     polygon = Polygon([(lon_breaks[-2], lat_breaks[-1]),
@@ -450,7 +507,7 @@ def draw_frame(ax, corners, lon_breaks, lat_breaks, custom_crs=ccrs.Geodetic(),
                         lat_breaks[-1] + frame_height),
                        (lon_breaks[-2], lat_breaks[-1] + frame_height)],
                        facecolor=colour, edgecolor='black', clip_on=False,
-                       ls='solid', lw=1, transform=custom_crs)
+                       ls='solid', lw=1, transform=custom_crs, zorder=4)
     ax.add_patch(polygon)
         
     # Top bar, from right to left
@@ -461,7 +518,7 @@ def draw_frame(ax, corners, lon_breaks, lat_breaks, custom_crs=ccrs.Geodetic(),
                               width=to_lon - from_lon,
                               height=frame_height, facecolor=colour,
                               edgecolor='black', clip_on=False, ls='solid',
-                              lw=1, transform=custom_crs)
+                              lw=1, transform=custom_crs, zorder=4)
         ax.add_patch(rectangle)
         
     colour = 'white' if colour == 'black' else 'black'
@@ -471,7 +528,7 @@ def draw_frame(ax, corners, lon_breaks, lat_breaks, custom_crs=ccrs.Geodetic(),
                        (lon_breaks[0] - frame_width,
                         lat_breaks[-1] + frame_height)],
                        facecolor=colour, edgecolor='black', clip_on=False,
-                       ls='solid', lw=1, transform=custom_crs)
+                       ls='solid', lw=1, transform=custom_crs, zorder=4)
     ax.add_patch(polygon)
     colour = 'white' if colour == 'black' else 'black'
     polygon = Polygon([(lon_breaks[0] - frame_width, lat_breaks[-2]),
@@ -480,7 +537,7 @@ def draw_frame(ax, corners, lon_breaks, lat_breaks, custom_crs=ccrs.Geodetic(),
                        (lon_breaks[0] - frame_width,
                         lat_breaks[-1] + frame_height)],
                        facecolor=colour, edgecolor='black', clip_on=False,
-                       ls='solid', lw=1, transform=custom_crs)
+                       ls='solid', lw=1, transform=custom_crs, zorder=4)
     ax.add_patch(polygon)
         
     # Left bar, from top to bottom
@@ -491,7 +548,7 @@ def draw_frame(ax, corners, lon_breaks, lat_breaks, custom_crs=ccrs.Geodetic(),
                               width=frame_width,
                               height=to_lat - from_lat, facecolor=colour,
                               edgecolor='black', clip_on=False, ls='solid',
-                              lw=1, transform=custom_crs)
+                              lw=1, transform=custom_crs, zorder=4)
         ax.add_patch(rectangle)
         
 def draw_compass(ax, size=0.8):
@@ -675,13 +732,23 @@ def draw_legend(ax):
     
     # Print land, coastline, farms and probes legend
     text_spacing = 0.04*dlat
-    text_pos = lat_min + dlat*0.48
+    text_pos = lat_min + dlat*0.5
     
     rectangle = Rectangle((lon_min + dlon*0.1, text_pos-0.01*dlat),
                            width=0.2*dlon, height=0.02*dlat,
+                           facecolor='none', edgecolor='grey', clip_on=False,
+                           ls='solid', lw=0.5, zorder=5)
+    ax.add_patch(rectangle)
+    ax.text(text_lon, text_pos, "Domain",
+            verticalalignment='center', horizontalalignment='left',
+            fontsize=10, zorder=4)
+            
+    text_pos -= text_spacing
+    rectangle = Rectangle((lon_min + dlon*0.1, text_pos-0.01*dlat),
+                           width=0.2*dlon, height=0.02*dlat,
                            facecolor=cfeature.COLORS['land'],
-                           edgecolor='black', clip_on=False, ls='solid',
-                           lw=1, zorder=5)
+                           edgecolor='none', clip_on=False, ls='solid',
+                           lw=0, zorder=5)
     ax.add_patch(rectangle)
     ax.text(text_lon, text_pos, "Land",
             verticalalignment='center', horizontalalignment='left',
@@ -690,7 +757,7 @@ def draw_legend(ax):
     text_pos -= text_spacing 
     ax.plot([lon_min + dlon*0.1, lon_min + dlon*0.3],
              [text_pos, text_pos],
-             linestyle = '-', lw=0.8, color='black', zorder=4)
+             linestyle = '-', lw=1, color='black', zorder=4)
     ax.text(text_lon, text_pos, "Shoreline",
             verticalalignment='center', horizontalalignment='left',
             fontsize=10, zorder=4)
@@ -698,14 +765,14 @@ def draw_legend(ax):
     text_pos -= text_spacing 
     ax.plot(symb_lon, text_pos, marker='o', color='black',
             markersize=4, alpha=0.7)
-    ax.text(text_lon, text_pos, "Farms",
+    ax.text(text_lon, text_pos, "Farm",
             verticalalignment='center', horizontalalignment='left',
             fontsize=10, zorder=4)
     
     text_pos -= text_spacing 
     ax.plot(symb_lon, text_pos, marker='+', color='black',
             markersize=4, alpha=0.7)        
-    ax.text(text_lon, text_pos, "Probes",
+    ax.text(text_lon, text_pos, "Probe",
             verticalalignment='center', horizontalalignment='left',
             fontsize=10, zorder=4)
         
