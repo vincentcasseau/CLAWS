@@ -34,7 +34,7 @@ def check_probes_validity(probes, corners, concentration):
     for P in probes:
         P.check_validity(corners, concentration)
         
-def record_probes_history(probes, corners, concentration, quadtree_obj,
+def record_probes_history(probes_obj, corners, concentration, quadtree_obj,
                           quadtree_conc_lvl):
     """Store concentration history of all probes for all root and leaf bins,
     and for all output times
@@ -57,11 +57,11 @@ def record_probes_history(probes, corners, concentration, quadtree_obj,
             get_quadtree_histograms function. Indicates the number of
             sub-histograms per output time bins and their depth level.
     """
-    for P in probes:
+    for P in probes_obj:
         P.record_history(corners, concentration, quadtree_obj,
                          quadtree_conc_lvl)
         
-def plot_probes_concentration(probes, wf, time, time_last_treatment,
+def plot_probes_concentration(probes_obj, wf, time, time_last_treatment,
                               chemical_obj, pixelsize_m, dz, quadtree_obj,
                               last_treatment_label='Last treatment',
                               ylabel='Concentration', filename='probe'):
@@ -98,7 +98,7 @@ def plot_probes_concentration(probes, wf, time, time_last_treatment,
         filename: string; plot filename without the path nor the file
             extension. default is 'probes'
         """
-    for pidx, P in enumerate(probes):
+    for pidx, P in enumerate(probes_obj):
         P.plot_concentration(wf, time, time_last_treatment, chemical_obj,
                              pixelsize_m, dz, quadtree_obj, pidx,
                              last_treatment_label, ylabel, filename)
