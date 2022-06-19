@@ -195,6 +195,7 @@ def create_terrain(corners, loch_obj, seeding_locations, tile_style='',
     dlon = lon_max - lon_min
     dlat = lat_max - lat_min
     lon_mid = lon_min + dlon/2.
+    lat_mid = lat_min + dlat/2.
     ratio = dlon_to_dlat_ratio(lat_min, lat_max)
     aspect_ratio = dlon/(dlat*ratio)
     if aspect_ratio < target_aspect_ratio:
@@ -204,7 +205,13 @@ def create_terrain(corners, loch_obj, seeding_locations, tile_style='',
         lon_max = lon_mid + dlon/2.
         domain_w_margins[0] = lon_min
         domain_w_margins[1] = lon_max
-    
+    else:
+        # Increase latitude range (lat_mid and ratio are unchanged)
+        dlat = dlon/(ratio*target_aspect_ratio)
+        lat_min = lat_mid - dlat/2.
+        lat_max = lat_mid + dlat/2.
+        domain_w_margins[2] = lat_min
+        domain_w_margins[3] = lat_max
     # Create figure
     figsize = [9., 6.8]
     fig = plt.figure(figsize=figsize)
@@ -747,8 +754,8 @@ def draw_legend(ax):
     rectangle = Rectangle((lon_min + dlon*0.1, text_pos-0.01*dlat),
                            width=0.2*dlon, height=0.02*dlat,
                            facecolor=cfeature.COLORS['land'],
-                           edgecolor='none', clip_on=False, ls='solid',
-                           lw=0, zorder=5)
+                           edgecolor=cfeature.COLORS['land'], clip_on=False,
+                           ls='solid', lw=1, zorder=5)
     ax.add_patch(rectangle)
     ax.text(text_lon, text_pos, "Land",
             verticalalignment='center', horizontalalignment='left',

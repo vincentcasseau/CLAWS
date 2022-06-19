@@ -65,14 +65,13 @@ domain_extent = [-5.2, -4.8, 55.6725, 55.85]
 
 # ------------------------------- FARM LOCATIONS ----------------------------- #
 # Loch name
-loch = LochCreran()
+loch = UndefinedLoch(name='Firth of Clyde')
 
 # Chemicals used
 chemicals = [Azamethiphos(half_life=5.6, Loch=loch, input_time_units='day')]
 
 # Seeding times (hours)
 seeding_times = [0., 24., 48., 72., 96., 120., 144., 168.]
-#seeding_times = [0.]
 
 # Weight of a single particle (grams)
 particle_weight_grams = 2.06e-2
