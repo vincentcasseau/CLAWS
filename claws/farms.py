@@ -4,6 +4,7 @@
 # Import modules
 import numpy as np
 from claws.treatments import NoTreatment
+from claws.waste_managers import NoWasteManager
 from claws.farm import Farm, total_nutrient_discharge
 
 __author__ = "Vincent Casseau and Tom Scanlon"
@@ -22,8 +23,9 @@ __status__ = "Production"
 
 class FishFarm(Farm):
     def __init__(self, Site, Treatment=NoTreatment(),
-                 yearly_fish_production=0.0, total_nutrient_discharge=0.0,
-                 input_mass_units='kg', reference="", name=""):
+                 WasteManager=NoWasteManager(), yearly_fish_production=0.0,
+                 total_nutrient_discharge=0.0, input_mass_units='kg',
+                 reference="", name=""):
         super().__init__(Site=Site, Treatment=Treatment,
                          yearly_fish_production=yearly_fish_production,
                          total_nutrient_discharge=total_nutrient_discharge,
@@ -31,8 +33,9 @@ class FishFarm(Farm):
                          name=name)
                          
 class SalmonFarm(Farm):
-    def __init__(self, Site, Treatment, yearly_fish_production=0.0,
-                 input_mass_units='kg', reference="", name=""):
+    def __init__(self, Site, Treatment, WasteManager=NoWasteManager(),
+                 yearly_fish_production=0.0, input_mass_units='kg',
+                 reference="", name=""):
         super().__init__(Site=Site, Treatment=Treatment,
                          yearly_fish_production=yearly_fish_production,
                          total_nutrient_discharge=
@@ -41,8 +44,9 @@ class SalmonFarm(Farm):
                          name=name)
                          
 class HalibutFarm(Farm):
-    def __init__(self, Site, Treatment, yearly_fish_production=0.0,
-                 input_mass_units='kg', reference="", name=""):
+    def __init__(self, Site, Treatment, WasteManager=NoWasteManager(),
+                 yearly_fish_production=0.0, input_mass_units='kg',
+                 reference="", name=""):
         super().__init__(Site=Site, Treatment=Treatment,
                          yearly_fish_production=yearly_fish_production,
                          total_nutrient_discharge=
