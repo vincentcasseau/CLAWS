@@ -69,6 +69,69 @@ def flatten(inputlist):
     """
     return np.array([item for sublist in inputlist for item in sublist])
     
+def find_nearest(array, value):
+    """Find the element of an array that is closest to an input value
+    
+    Arguments:
+        array: numpy array or python list; the array in which to search for the
+            element closest to an input value
+            
+        value: int/float; an input value
+    """
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return array[idx]
+    
+def lonrange_to_distance(corners):
+    """Converts a longitudinal range to a distance in meters using the WGS84
+    model and a median latitude.
+    
+    Arguments:
+        corners: python list; longitude and latitude range
+    """
+    lon_min, lon_max, lat_min, lat_max = corners
+    lat_mid = np.radians((lat_min + lat_max)/2.0)
+    dlon = lon_max - lon_min
+    # WGS84 model: degrees to meters, correct within 1 cm
+    return dlon*(111412.84*np.cos(lat_mid) - 93.5*np.cos(3.*lat_mid) +
+                 0.118*np.cos(5.*lat_mid))
+                      
+def distance_to_lonrange(distance, lat_min, lat_max):
+    """Converts a distance in meters to a longitudinal range using the WGS84
+    model and a median latitude.
+    
+    Arguments:
+        distance: float; distance in meters
+        
+        lat_min: float; minimum latitude
+        
+        lat_max: float; maximum latitude
+    """
+    lat_mid = np.radians((lat_min + lat_max)/2.0)
+    # WGS84 model: meters to degrees, correct within 1 cm
+    return distance/(111412.84*np.cos(lat_mid) - 93.5*np.cos(3.*lat_mid) +
+                     0.118*np.cos(5.*lat_mid))
+                      
+def dlon_to_dlat_ratio(lat_min, lat_max):
+    """Calculate the longitude range covered when moving by 1 m longitudinally,
+                     latitude range covered when moving by 1 m latitudinally,
+    and compute the ratio of these two quantities
+    This ratio is equal to 1 at the equator and is larger than 1 otherwise
+    (around 1.777 at 55 deg N)
+    
+    Arguments:
+        lat_min: float; minimum latitude
+        
+        lat_max: float; maximum latitude
+    """
+    lat_mid = np.radians((lat_min + lat_max)/2.0)                      
+    # 1.0 m to degrees, correct within 1 cm
+    deltalat = 1.0/(111320.92 - 559.82*np.cos(2.*lat_mid) +
+                    1.175*np.cos(4.*lat_mid) - 0.0023*np.cos(6.*lat_mid))
+    deltalon = 1.0/(111412.84*np.cos(lat_mid) -
+                    93.5*np.cos(3.*lat_mid) + 0.118*np.cos(5.*lat_mid))
+    return deltalon/deltalat
+
 def convert_conc_to_prog_units(input_value, input_conc_units, class_name):
     """Convert an input concentration in prog. units
     
