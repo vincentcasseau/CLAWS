@@ -55,6 +55,16 @@ root_voxelsize_dm3 = 1.e3*dz*pixelsize_meters**2
 # Open the output file with Xarray
 oa = opendrift.open_xarray(of)
 
+# Extract time data from histogram
+run_duration_sec = (oa.end_time - oa.start_time).total_seconds()
+ndt = oa.steps_output
+time_last_treatment = postpro.find_last_treatment(farms)
+len_time_bins = len(claws.output_options["time_bins"])
+
+# Sanitise output_options dictionary entries
+claws.sanitise_output_options(ndt)
+cf, lf, tf = claws.get_unit_factors()
+
 # Loop over chemical substances
 for sp in range(len(chemicals)):
     species_name = chemicals[sp].name()
@@ -72,16 +82,6 @@ for sp in range(len(chemicals)):
     # Compute bounds of the concentration domain                  
     conc_domain_extent = od_wrapper.compute_concentration_domain(
         concentration[0])
-
-    # Sanitise output_options dictionary entries
-    claws.sanitise_output_options(concentration)
-    cf, lf, tf = claws.get_unit_factors()
-
-    # Extract time data from histogram
-    ndt = np.shape(concentration)[0]
-    run_duration_sec = float((concentration.time[-1]-concentration.time[0])/1e9)
-    time_last_treatment = postpro.find_last_treatment(farms)
-    len_time_bins = len(claws.output_options["time_bins"])
 
     # Create empty arrays
     quadtree_area_over_eqs = np.zeros(shape=(len_time_bins))
