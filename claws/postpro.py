@@ -82,8 +82,7 @@ def plot_concentration_map(working_folder, corners, concentration,
         seeding_locations: list of Farm objects as implemented in
             claws.Farm; Seeding locations
         
-        probes_obj: list of Probe objects as implemented in
-            claws.Probe
+        probes_obj: list of Probe objects as implemented in claws.Probe
     """
    
     species_name = chemical_obj.name()
@@ -383,7 +382,7 @@ def create_terrain(corners, loch_obj, seeding_locations, tile_style='',
     draw_compass(ax2)
     
     # Add legend
-    draw_legend(ax2)
+    draw_legend(ax2, seeding_locations, probes)
     
     # Add minimap
     draw_minimap(fig, gsmap[1,1], seeding_locations, loch_obj.name())
@@ -711,12 +710,17 @@ def draw_compass(ax, size=0.8):
             "W", verticalalignment='center', horizontalalignment='right',
              fontsize=8, weight="bold", zorder=4)
              
-def draw_legend(ax):
+def draw_legend(ax, seeding_locations, probes_obj):
     """Draw a legend on the terrain map listing the different elements
     present (land, coastline, farms, probes), and the name of the application
     
     Arguments:
         ax: matplotlib axis; axis object as returned by plt.subplots
+        
+        seeding_locations: list of Farm objects as implemented in claws.Farm;
+            Seeding locations
+        
+        probes_obj: list of Probe objects as implemented in claws.Probe
     """ 
     lon_min, lon_max = ax.get_xlim()
     lat_min, lat_max = ax.get_ylim()
@@ -773,14 +777,14 @@ def draw_legend(ax):
     text_pos -= text_spacing 
     ax.plot(symb_lon, text_pos, marker='o', color='black',
             markersize=4, alpha=0.7)
-    ax.text(text_lon, text_pos, "Farm",
+    ax.text(text_lon, text_pos, "Farm ({})".format(len(seeding_locations)),
             verticalalignment='center', horizontalalignment='left',
             fontsize=10, zorder=4)
     
     text_pos -= text_spacing 
     ax.plot(symb_lon, text_pos, marker='+', color='black',
             markersize=4, alpha=0.7)        
-    ax.text(text_lon, text_pos, "Probe",
+    ax.text(text_lon, text_pos, "Probe ({})".format(len(probes_obj)),
             verticalalignment='center', horizontalalignment='left',
             fontsize=10, zorder=4)
         
