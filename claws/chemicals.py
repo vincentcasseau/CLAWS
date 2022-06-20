@@ -46,3 +46,6 @@ class Deltamethrin(ChemicalSubstance):
                          input_time_units=input_time_units,
                          reference='https://www.sepa.org.uk/regulations/water/'\
                          'aquaculture/environmental-standards/')
+                         
+class Dye(ChemicalSubstance):
+    pass
