@@ -35,7 +35,7 @@ from sb_aza_setup import *
 np.random.seed(seed)
 
 # Sanitise working folder and output file
-working_folder = claws.sanitise_working_folder(working_folder)
+working_folder, media_folder = claws.sanitise_working_folder(working_folder)
 of = claws.sanitise_output_file(working_folder, outfile, nsimulations)
 # Compute marker indices
 compute_marker_indices(farms, chemicals)
@@ -59,11 +59,11 @@ oa = opendrift.open_xarray(of)
 run_duration_sec = (oa.end_time - oa.start_time).total_seconds()
 ndt = oa.steps_output
 time_last_treatment = postpro.find_last_treatment(farms)
-len_time_bins = len(claws.output_options["time_bins"])
 
 # Sanitise output_options dictionary entries
 claws.sanitise_output_options(ndt)
 cf, lf, tf = claws.get_unit_factors()
+len_time_bins = len(claws.output_options["time_bins"])
 
 # Loop over chemical substances
 for sp in range(len(chemicals)):
@@ -181,42 +181,42 @@ for sp in range(len(chemicals)):
 
     # Plot concentration on terrain map for all output times
     quadtree_peakconc = postpro.plot_concentration_map(
-        working_folder + file_prefix, domain_extent, concentration,
+        media_folder + file_prefix, domain_extent, concentration,
         quadtree_conc_lvl, loch, chemicals[sp], quadtree, farms, probes)
 
     # Plot concentration time series at probe stations
     t = np.linspace(start=0.0, stop=run_duration_sec*tf, num=ndt)
-    plot_probes_concentration(probes, working_folder, t, time_last_treatment,
+    plot_probes_concentration(probes, media_folder, t, time_last_treatment,
                               chemicals[sp], pixelsize_meters, dz, quadtree,
                               ylabel='{} concentration'.format(species_name),
                               filename=file_prefix + 'probe')
 
     # Plot time series of peak concentration
-    postpro.plot_series_peak_concentration(working_folder + file_prefix, t,
+    postpro.plot_series_peak_concentration(media_folder + file_prefix, t,
         peakconc, quadtree_peakconc, chemicals[sp], quadtree, pixelsize_meters,
         dz, time_last_treatment, last_treatment_label='Last treatment')
 
     # Plot time series of area greater than EQS
-    postpro.plot_series_area_greater_EQS(working_folder + file_prefix, t,
+    postpro.plot_series_area_greater_EQS(media_folder + file_prefix, t,
         area_over_eqs, quadtree_area_over_eqs, chemicals[sp], quadtree,
         pixelsize_meters, dz, time_last_treatment,
         last_treatment_label='Last treatment')
         
     # Plot time series of area greater than MAC
-    postpro.plot_series_area_greater_MAC(working_folder + file_prefix, t,
+    postpro.plot_series_area_greater_MAC(media_folder + file_prefix, t,
         area_over_mac, quadtree_area_over_mac, chemicals[sp], quadtree,
         pixelsize_meters, dz, time_last_treatment,
         last_treatment_label='Last treatment')
 
     # Plot vertical distribution bar graph for all output times
-    postpro.plot_vertical_distribution_bar_graph(working_folder + file_prefix,
+    postpro.plot_vertical_distribution_bar_graph(media_folder + file_prefix,
                                                  vdist, bar_height, nmax)
 
     # Animate concentration on terrain map
-    postpro.animate_concentration_terrain(working_folder + file_prefix)
+    postpro.animate_concentration_terrain(media_folder + file_prefix)
 
     # Animate particle vertical distribution
-    postpro.animate_vertical_distribution(working_folder + file_prefix)
+    postpro.animate_vertical_distribution(media_folder + file_prefix)
             
     # Print time series to file
     postpro.print_time_series_to_file(working_folder + file_prefix,

@@ -4,6 +4,7 @@ sanitise these inputs
 """
 
 # Import modules
+import os
 import numpy as np
 from pyproj import Proj
 import opendrift
@@ -67,21 +68,34 @@ _unit_factors = [1., 1., 1.]
 # Functions 
 # ---------------------------------------------------------------------------- #
 
-def sanitise_working_folder(wf):
-    """Sanitise working folder
+def sanitise_working_folder(working_folder):
+    """Sanitise working folder and create media directory
     
     Arguments:
-        wf: string; working folder
+        working_folder: string; working folder
     """
-    if wf[-1] != '/':
-        wf += '/'
-    return wf
+    if working_folder[-1] != '/':
+        working_folder += '/'
+        
+    media_folder = create_media_directory(working_folder)
+    return working_folder, media_folder
     
-def sanitise_output_file(wf, of, script_args):
+def create_media_directory(working_folder):
+    """Create a folder to store media: images, videos created during
+    post-processing
+    """
+    media_folder = os.path.join(working_folder, 'media/')
+    try:
+        os.mkdir(media_folder)
+    except FileExistsError:
+        pass
+    return media_folder
+    
+def sanitise_output_file(working_folder, of, script_args):
     """Sanitise output file
     
     Arguments:
-        wf: string; working folder
+        working_folder: string; working folder
         
         of: string; output file
         
@@ -93,13 +107,13 @@ def sanitise_output_file(wf, of, script_args):
             simulation_index = '_' + str(script_args[1])
         else:
             simulation_index = ''
-        outfile = wf + of + simulation_index + '.nc'
+        outfile = working_folder + of + simulation_index + '.nc'
     elif type(script_args) is int:
         nsimulations = script_args
         if nsimulations > 1:
-            outfile = wf + of + '_1.nc'
+            outfile = working_folder + of + '_1.nc'
         else:
-            outfile = wf + of + '.nc'
+            outfile = working_folder + of + '.nc'
     else:
         raise InputError(script_args,
             'Wrong argument type passed to sanitise_output_file')
@@ -183,4 +197,4 @@ def get_unit_factors():
     """Return the unit conversion factors between the program units and the
     user-defined output units
     """
-    return _unit_factors    
+    return _unit_factors
