@@ -20,7 +20,8 @@ import cartopy.feature as cfeature
 
 from claws.helpers import *
 from claws.claws import output_options, animation, get_unit_factors
-from claws.opendrift_wrapper import get_alltime_min_max_concentrations
+from claws.opendrift_wrapper import (get_alltime_min_max_concentrations,
+                                     get_nparticles_in_polygon)
 
 __author__ = "Vincent Casseau and Tom Scanlon"
 __copyright__ = "Copyright 2022, MTS-CFD Ltd."
@@ -1126,6 +1127,93 @@ def plot_vertical_distribution_bar_graph(working_folder, vdist, bar_height,
         plt.savefig(working_folder + 'vertical_distribution'\
                         '_{:04d}.png'.format(tbin))
         plt.close()
+
+def plot_series_nparticles_in_polygon(working_folder, polygons, time, lons,
+                                      lats, statuses):
+    """Plot time series of number of particles in a control area (polygons), eg,
+    for flushing time calculation
+    
+    Arguments:
+        working_folder: string; working folder
+        
+        polygons: list of GeoJSON polygons; control areas
+        
+        time: numpy array; time series
+        
+        lons: numpy array; longitude history for all times and particles
+        
+        lats: numpy array; latitude history for all times and particles
+        
+        statuses: numpy array; status history for all times and particles
+    """     
+    ndt = len(time)
+    flushing_time = np.empty(shape=(len(polygons)))
+    
+    # Conversion factors from program units to user-defined output units
+    cf, lf, tf = get_unit_factors()
+    
+    nparticles_in_polygons = get_nparticles_in_polygon(polygons, lons, lats,
+                                                       statuses)
+    
+    # Normalise
+    nparticles_in_polygons *= 100./nparticles_in_polygons[:,0]
+    
+    # File suffix should there be multiple control areas
+    suffix = ''
+    if len(polygons) > 1:
+        suffix = '_{}'.format(p+1)
+        
+    npart_at_ft = 37.0
+    npart_at_ft_str = ('%f'%npart_at_ft).rstrip('0').rstrip('.')
+    
+    for p in range(len(polygons)):
+        # Derive flushing time
+        if np.min(nparticles_in_polygons[p,:]) > npart_at_ft:
+            has_flushed = False
+        else:
+            has_flushed = True
+        
+        if has_flushed:
+            # Find latest time satisfying npart > 37%
+            ft_idces = np.where(nparticles_in_polygons[p,:] < 37.)[0]
+            for i in reversed(range(len(ft_idces))):
+                if ft_idces[i] != ft_idces[i-1] + 1:
+                    ft_idx = ft_idces[i]
+                    break
+                
+            # Linear interpolation of the flushing time
+            ft_idx_m = ft_idx - 1
+            ft_idx_p = ft_idx
+            val_m = nparticles_in_polygons[p,ft_idx_m]
+            val_p = nparticles_in_polygons[p,ft_idx_p]
+            slope = (val_p - val_m)/(time[ft_idx_p] - time[ft_idx_m])
+            flushing_time = time[ft_idx_m] + (npart_at_ft - val_m)/slope
+        
+        # Plot time series and print the flushing time
+        fig, ax = plt.subplots(1)
+        plt.plot(time, nparticles_in_polygons[p], color='black', linestyle='-',
+                 lw=1)
+        plt.axhline(y=npart_at_ft, color='black', linestyle='dotted')
+        if has_flushed:
+            plt.axvline(x=flushing_time, color='black', linestyle='dotted')
+        xmin, xmax = ax.get_xlim()
+        ax.text(xmin + 0.02*(xmax - xmin), npart_at_ft,
+                "{}%".format(npart_at_ft_str), va='bottom')
+        if has_flushed:
+            ymin, ymax = ax.get_ylim()
+            time_units_str = output_options["time_units"][1:-1]
+            if flushing_time > 1. and time_units_str == 'day':
+                time_units_str += 's'
+            ax.text(flushing_time, ymax - 0.02*(ymax - ymin), 
+                    "Flushing time ~ {:.2f} {}".format(flushing_time,
+                    time_units_str), rotation=90, ha='right', va='top')
+        plt.tick_params(axis='y', which='minor')
+        ax.yaxis.set_minor_formatter('')
+        plt.xlabel('Time {}'.format(output_options["time_units"]))
+        plt.ylabel('Number of particles (%)')
+        plt.savefig(working_folder + 'flushing_time{}.png'.format(suffix))
+        plt.close()
+    return flushing_time
 
 def round_logscale_axis(arr, leave_top=False, leave_bottom=False,
                         set_min=-np.inf, set_max=np.inf):

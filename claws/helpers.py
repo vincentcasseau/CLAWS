@@ -82,6 +82,20 @@ def find_nearest(array, value):
     idx = (np.abs(array - value)).argmin()
     return array[idx]
     
+def find_pos_nearest(array, value):
+    """Find the position of the element of an array that is closest to an input
+    value
+    
+    Arguments:
+        array: numpy array or python list; the array in which to search for the
+            element closest to an input value
+            
+        value: int/float; an input value
+    """
+    array = np.asarray(array)
+    idx = (np.abs(array - value)).argmin()
+    return idx
+    
 def lonrange_to_distance(corners):
     """Converts a longitudinal range to a distance in meters using the WGS84
     model and a median latitude.

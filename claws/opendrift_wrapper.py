@@ -4,6 +4,7 @@
 
 # Import modules
 import numpy as np
+from shapely.geometry import shape, Point
 from pyproj import Proj
 import opendrift
 
@@ -396,4 +397,35 @@ def get_alltime_min_max_concentrations(concentration, quadtree_conc_lvl,
         cmaxmax = max(cmaxmax, cmax)
         # Set sub-histogram peak concentration at time tbin
         quadtree_peakconc[i] = cmax
-    return [cminmin, cmaxmax, quadtree_peakconc]    
+    return [cminmin, cmaxmax, quadtree_peakconc]
+    
+def get_nparticles_in_polygon(polygons, lons, lats, statuses):
+    """Compute the number of particles that are located inside GeoJSON polygons,
+        eg, for the flushing time calculation
+    
+    Arguments:
+        polygons: list of GeoJSON polygons
+        
+        lons: numpy array; longitude history for all times and particles
+        
+        lats: numpy array; latitude history for all times and particles
+        
+        statuses: numpy array; status history for all times and particles
+    """     
+    ndt = np.shape(lons)[0]
+    npolygons = np.shape(polygons)[0]
+    nparticles_in_polygons = np.zeros(shape=(npolygons,ndt), dtype=float)
+    
+    for p in range(npolygons):
+        polygon = shape(polygons[p]['geometry'])
+        for t in range(ndt):
+            for i in range(len(lons[t])):
+                status = statuses[t,i]
+                # Skip stranded or decayed particles
+                if status != 0: continue
+                point = Point(lons[t,i], lats[t,i]) 
+                # check polygon to see if it contains the point
+                if polygon.contains(point):
+                    nparticles_in_polygons[p,t] += 1
+    
+    return nparticles_in_polygons
