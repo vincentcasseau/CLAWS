@@ -399,12 +399,12 @@ def get_alltime_min_max_concentrations(concentration, quadtree_conc_lvl,
         quadtree_peakconc[i] = cmax
     return [cminmin, cmaxmax, quadtree_peakconc]
     
-def get_nparticles_in_polygon(polygons, lons, lats, statuses):
-    """Compute the number of particles that are located inside GeoJSON polygons,
-        eg, for the flushing time calculation
+def get_nparticles_in_polygon(polygon, lons, lats, statuses):
+    """Compute the number of particles that are located inside a GeoJSON
+    polygon, eg, for the calculation of the flushing time
     
     Arguments:
-        polygons: list of GeoJSON polygons
+        polygon: a GeoJSON polygon
         
         lons: numpy array; longitude history for all times and particles
         
@@ -413,19 +413,17 @@ def get_nparticles_in_polygon(polygons, lons, lats, statuses):
         statuses: numpy array; status history for all times and particles
     """     
     ndt = np.shape(lons)[0]
-    npolygons = np.shape(polygons)[0]
-    nparticles_in_polygons = np.zeros(shape=(npolygons,ndt), dtype=float)
+    nparticles_in_polygon = np.zeros(shape=(ndt), dtype=float)
+    polygon = shape(polygon['geometry'])
     
-    for p in range(npolygons):
-        polygon = shape(polygons[p]['geometry'])
-        for t in range(ndt):
-            for i in range(len(lons[t])):
-                status = statuses[t,i]
-                # Skip stranded or decayed particles
-                if status != 0: continue
-                point = Point(lons[t,i], lats[t,i]) 
-                # check polygon to see if it contains the point
-                if polygon.contains(point):
-                    nparticles_in_polygons[p,t] += 1
+    for t in range(ndt):
+        for i in range(len(lons[t])):
+            status = statuses[t,i]
+            # Skip stranded or decayed particles
+            if status != 0: continue
+            point = Point(lons[t,i], lats[t,i]) 
+            # check polygon to see if it contains the point
+            if polygon.contains(point):
+                nparticles_in_polygon[t] += 1
     
-    return nparticles_in_polygons
+    return nparticles_in_polygon
