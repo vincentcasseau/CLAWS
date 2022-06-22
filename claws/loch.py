@@ -88,9 +88,11 @@ class Loch(object):
                     "Loch's volume or Loch's mean depth must be an input")
         elif np.isnan(self.__LWvolume):
             assert(type(self.__LWmean_depth) is float)
-            if self.__LWmean_depth <= 0.0:
+            if self.__LWmean_depth < 0.0:
+                self.__LWmean_depth *= -1.0
+            elif self.__LWmean_depth == 0.0:
                 raise InputError(self.__LWmean_depth,
-                    "Loch's mean depth should be a positive number")
+                    "Loch's mean depth should be non-zero")
         elif np.isnan(self.__LWmean_depth):
             assert(type(self.__LWvolume) is float)
             if self.__LWvolume <= 0.0:
