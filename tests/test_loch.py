@@ -12,12 +12,14 @@ __status__ = "Production"
 
 from claws.lochs import *
 
+def print_loch_info(loch_obj):
+    print(loch_obj)
+    print("\n{}'s allowable zone of effect (AZE) (km^2): {:.6f}".format(
+          loch_obj.name(), loch_obj.aze('km^2')))
+    print("{}'s flushing rate (M m^3/yr): {:.6f}".format(loch_obj.name(),
+          loch_obj.flushing_rate('M m^3/yr')))
+    
 if __name__ == "__main__":
-    loch = LochCreran()
-    print(loch)
-    print("{}'s allowable zone of effect (AZE) (km^2): {:.6f}".format(
-          loch.name(), loch.aze('km^2')))
-    print("{}'s flushing time (day): {:.6f}".format(loch.name(),
-          loch.flushing_time('day')))
-    print("\n{}'s flushing rate (M m^3/yr): {:.6f}".format(loch.name(),
-          loch.flushing_rate('M m^3/yr')))
+    print_loch_info(LochCreran())
+    print("")
+    print_loch_info(UndefinedLoch('Firth of Clyde'))

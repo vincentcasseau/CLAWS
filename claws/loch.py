@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 """Root class defining a Loch
-    - The Loch's low water area is used to evaluate the allowable zone of
-      effect (AZE)
 """
 
 # Import modules
@@ -45,12 +43,15 @@ class Loch(object):
         self.__reference = reference
         
         self._sanitize(input_len_units, input_area_units, input_vol_units)
+        # Compute the flushing time (h) - it can be reset by the user
+        self._compute_flushing_time()
         
     def __str__(self):
         return """{}\n\tLW Area (km^2) = {}\n\tLW Volume (M m^3) = {}\
             \n\tLW Mean depth (m) = {}\n\tTidal range (m) = {}\
-            \n\tReference = {}""".format(self.name(), self.area('km^2'),
-            self.volume('M m^3'), self.__LWmean_depth, self.__tidal_range,
+            \n\tFlushing time (day) = {}\n\tReference = {}""".format(
+            self.name(), self.area('km^2'), self.volume('M m^3'),
+            self.__LWmean_depth, self.__tidal_range, self.flushing_time('day'),
             self.__reference)
     
     def area(self, units='m^2'):
@@ -145,11 +146,10 @@ class Loch(object):
         """
         return self.area(units)*0.02
     
-    def flushing_time(self, units='h'):
-        """Return the flushing time of the Loch, T_F
-        
-        Arguments:
-            units: string; Output units. default: h (program units)
+    def _compute_flushing_time(self):
+        """Compute the flushing time of the Loch, T_F, in hours (program units)
+        The flushing time of the Loch is considered to be infinite (very large
+        water area when the volume is not set)
         
         References:
           - https://consultation.sepa.org.uk/permits/loch-long-salmon-beinn-
@@ -162,9 +162,27 @@ class Loch(object):
             Scottish Fisheries Research Report Number 63 / 2002, page 5  
         """
         nhours_per_tiday_cycle=0.52*24.
-        tflushing = nhours_per_tiday_cycle/0.7*self.__LWvolume/(
+        self.__flushing_time = nhours_per_tiday_cycle/0.7*self.__LWvolume/(
             self.__LWarea*self.__tidal_range)
-        return convert_time(tflushing, units, self.name())
+        
+    def set_flushing_time(self, value, units='h'):
+        """Set the flushing time of the Loch, T_F
+        
+        Arguments:
+            units: string; Input units. default: h (program units) 
+        """
+        self.__flushing_time = convert_time_to_prog_units(value, units,
+                                                          self.name())
+        
+    def flushing_time(self, units='h'):
+        """Return the flushing time of the Loch, T_F.
+        The flushing may either have been evaluated using _compute_flushing_time
+        or set using set_flushing_time
+        
+        Arguments:
+            units: string; Output units. default: h (program units) 
+        """
+        return convert_time(self.__flushing_time, units, self.name())
         
     def flushing_rate(self, units='m^3/h'):
         """Return the flushing rate of the Loch, Q
@@ -178,5 +196,5 @@ class Loch(object):
             predicted levels of nutrient enhancement and benthic impact",
             Scottish Fisheries Research Report Number 63 / 2002, page 7  
         """
-        q = self.__LWvolume/self.flushing_time()
+        q = self.__LWvolume/self.__flushing_time
         return convert_flowrate(q, units, self.name())

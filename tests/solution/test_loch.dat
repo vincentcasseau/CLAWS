@@ -3,8 +3,19 @@ Loch Creran
 	LW Volume (M m^3) = 177.6            
 	LW Mean depth (m) = 13.4
 	Tidal range (m) = 3.3            
+	Flushing time (day) = 3.0059564495654723
 	Reference = Edwards, A. and Sharples, F. (1986), "Scottish Sea Lochs: a Catalogue", Scottish Marine Biological Association / Nature Conservancy Council, p. 84
-Loch Creran's allowable zone of effect (AZE) (km^2): 0.266000
-Loch Creran's flushing time (day): 3.005956
 
+Loch Creran's allowable zone of effect (AZE) (km^2): 0.266000
 Loch Creran's flushing rate (M m^3/yr): 21565.182692
+
+Firth of Clyde
+	LW Area (km^2) = inf
+	LW Volume (M m^3) = nan            
+	LW Mean depth (m) = nan
+	Tidal range (m) = inf            
+	Flushing time (day) = nan
+	Reference = 
+
+Firth of Clyde's allowable zone of effect (AZE) (km^2): inf
+Firth of Clyde's flushing rate (M m^3/yr): nan
