@@ -116,7 +116,7 @@ def sanitise_output_file(working_folder, of, script_args):
             outfile = working_folder + of + '.nc'
     else:
         raise InputError(script_args,
-            'Wrong argument type passed to sanitise_output_file')
+            'Wrong argument type passed to claws.claws.sanitise_output_file')
     return outfile
     
 def sanitise_output_options(ndt):
@@ -165,7 +165,6 @@ def _sanitise_output_units():
     
     # Output concentration unit
     output_conc_units = output_options["concentration_units"]
-    if output_conc_units[0] == '(': return
     conc_factor = convert_conc(1.0, output_conc_units, "_sanitise_output_units")
     
     # Output length unit
@@ -185,11 +184,6 @@ def _sanitise_output_units():
             
     time_factor = available_time_units.get(output_time_units, None)
         
-    # Output strings for concentration and time units
-    output_options["concentration_units"] = "({})".format(
-        output_options["concentration_units"])
-    output_options["time_units"] = "({})".format(output_options["time_units"])
-    
     # Program to output conversion factors
     _unit_factors = [conc_factor, len_factor, time_factor]
     

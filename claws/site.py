@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-"""Abstract class defining a site.
+"""Root class defining a site.
 """
 
 # Import modules
@@ -43,7 +43,7 @@ class Site(object):
         self._sanitize(proj_params)
         
     def __str__(self, indent_lvl=1):
-        if self.__x is None:
+        if self.__input_coordinate_system == 'Geographic':
             return """{1}\n{0}Longitude = {2}\n{0}Latitude = {3}\
                 \n{0}Reference = {4}""".format(indent(indent_lvl), self.name(),
                 self.__lon, self.__lat, self.__reference)
@@ -52,6 +52,9 @@ class Site(object):
                 \n{0}Reference = {4}""".format(indent(indent_lvl), self.name(),
                 self.__x, self.__y, self.__reference)
     
+    def coordinate_system(self):
+        return self.__input_coordinate_system
+        
     def lon(self):
         return self.__lon
         
@@ -64,6 +67,14 @@ class Site(object):
     def y(self):
         return self.__y
       
+    def name(self):
+        return self.__name
+        
+    def position(self):
+        if self.__input_coordinate_system == 'Geographic':
+            return (self.__lon, self.__lat)
+        return (self.__x, self.__y)
+        
     def _sanitize(self, proj_params):
         if not self.__name:
             self.__name = ' '.join(re.findall('([A-Z][a-z]+)',
@@ -94,6 +105,8 @@ class Site(object):
                       "or as (lon,lat)".format(self.name()))          
         
         if self.__lon is not None:
+            self.__input_coordinate_system = 'Geographic'
+            
             assert(type(self.__lon) in [int, float])
             if abs(self.__lon) > 90.0:
                 raise InputError(self.__lon, 
@@ -107,6 +120,8 @@ class Site(object):
                         "and +90 deg".format(self.name()))
         
         if self.__x is not None:
+            self.__input_coordinate_system = 'Cartesian'
+            
             assert(type(self.__x) in [int, float])
             assert(type(self.__y) in [int, float])
             
@@ -118,6 +133,3 @@ class Site(object):
             # Projection and transformation
             xy2lonlat = Proj(proj_params, preserve_units=False)
             self.__lon, self.__lat = xy2lonlat(self.__x, self.__y, inverse=True)
-                
-    def name(self):
-        return self.__name

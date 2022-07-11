@@ -22,4 +22,4 @@ def print_loch_info(loch_obj):
 if __name__ == "__main__":
     print_loch_info(LochCreran())
     print("")
-    print_loch_info(UndefinedLoch('Firth of Clyde'))
+    print_loch_info(LargeWaterBody('Firth of Clyde'))

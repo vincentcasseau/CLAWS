@@ -414,7 +414,7 @@ def get_nparticles_in_polygon(polygon, lons, lats, statuses):
     """     
     ndt = np.shape(lons)[0]
     nparticles_in_polygon = np.zeros(shape=(ndt), dtype=float)
-    polygon = shape(polygon['geometry'])
+    polygon = shape(polygon)
     
     for t in range(ndt):
         for i in range(len(lons[t])):

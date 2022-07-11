@@ -54,7 +54,8 @@ def find_last_treatment(seeding_locations):
     
 def plot_concentration_map(working_folder, corners, concentration,
                            quadtree_conc_lvl, loch_obj, chemical_obj,
-                           quadtree_obj, seeding_locations, probes_obj):
+                           quadtree_obj, seeding_locations, probes_obj,
+                           normalised=False):
     """Plot concentration on terrain map for all output times
     
     Arguments:
@@ -83,6 +84,9 @@ def plot_concentration_map(working_folder, corners, concentration,
             claws.Farm; Seeding locations
         
         probes_obj: list of Probe objects as implemented in claws.Probe
+        
+        normalised: bool; whether the concentration field is normalised or not.
+            If so, no there won't be units on the contour map. default is False
     """
    
     species_name = chemical_obj.name()
@@ -127,8 +131,14 @@ def plot_concentration_map(working_folder, corners, concentration,
         # Set colorbar and save
         cbar = fig.colorbar(c, ax=ax, orientation="horizontal", shrink=0.65,
                             pad=0.075, aspect=25, extend='min')
-        cbar.set_label('{} concentration {}'.format(species_name,
-            output_options["concentration_units"]))
+        if normalised:
+            prefix_str = 'Normalised '
+            suffix_str = 'density'
+        else:
+            prefix_str = ''
+            suffix_str = 'concentration ({})'.format(
+                output_options["concentration_units"])
+        cbar.set_label('{}{} {}'.format(prefix_str, species_name, suffix_str))
         plt.suptitle(np.datetime64(concentration[0].time[tbin].item(),
             'ns').astype('datetime64[us]').astype(datetime.datetime).strftime(
             '%d %B %Y, %I:%M:%S %p'), y=0.97)   
@@ -962,8 +972,8 @@ def plot_series_peak_concentration(working_folder, time, peakconc,
     ax.yaxis.set_minor_formatter('')
     print_last_treatment(plt, ax, time_last_treatment,
                          label=last_treatment_label)
-    plt.xlabel('Time {}'.format(output_options["time_units"]))
-    plt.ylabel('Peak {} concentration {}'.format(species_name,
+    plt.xlabel('Time ({})'.format(output_options["time_units"]))
+    plt.ylabel('Peak {} concentration ({})'.format(species_name,
         output_options["concentration_units"]))
     plt.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left", mode="expand",
                borderaxespad=0, ncol=2)
@@ -1027,7 +1037,7 @@ def plot_series_area_greater_EQS(working_folder, time, area_over_eqs,
     ax.yaxis.set_minor_formatter('')
     print_last_treatment(plt, ax, time_last_treatment,
                          label=last_treatment_label)
-    plt.xlabel('Time {}'.format(output_options["time_units"]))
+    plt.xlabel('Time ({})'.format(output_options["time_units"]))
     plt.ylabel('Area > EQS ({}$^2$)'.format(output_options["length_units"]))
     plt.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left", mode="expand",
                borderaxespad=0, ncol=2)
@@ -1091,7 +1101,7 @@ def plot_series_area_greater_MAC(working_folder, time, area_over_mac,
     ax.yaxis.set_minor_formatter('')
     print_last_treatment(plt, ax, time_last_treatment,
                          label=last_treatment_label)
-    plt.xlabel('Time {}'.format(output_options["time_units"]))
+    plt.xlabel('Time ({})'.format(output_options["time_units"]))
     plt.ylabel('Area > MAC ({}$^2$)'.format(output_options["length_units"]))
     plt.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left", mode="expand",
                borderaxespad=0, ncol=2)
@@ -1135,7 +1145,8 @@ def plot_vertical_distribution_bar_graph(working_folder, vdist, bar_height,
 def plot_series_nparticles_in_polygon(working_folder, polygon, time, lons, lats,
                                       statuses):
     """Plot time series of number of particles in a control area (polygon), eg,
-    for flushing time calculation
+    for flushing time calculation, and return the time series of the number of
+    particles in the control area, and the flushing time
     
     Arguments:
         working_folder: string; working folder
@@ -1198,7 +1209,7 @@ def plot_series_nparticles_in_polygon(working_folder, polygon, time, lons, lats,
             "{}%".format(npart_at_ft_str), va='bottom')
     if has_flushed:
         ymin, ymax = ax.get_ylim()
-        time_units_str = output_options["time_units"][1:-1]
+        time_units_str = output_options["time_units"]
         if flushing_time > 1. and time_units_str == 'day':
             time_units_str += 's'
         ax.text(flushing_time, ymax - 0.02*(ymax - ymin), 
@@ -1206,11 +1217,17 @@ def plot_series_nparticles_in_polygon(working_folder, polygon, time, lons, lats,
                 time_units_str), rotation=90, ha='right', va='top')
     plt.tick_params(axis='y', which='minor')
     ax.yaxis.set_minor_formatter('')
-    plt.xlabel('Time {}'.format(output_options["time_units"]))
+    plt.xlabel('Time ({})'.format(output_options["time_units"]))
     plt.ylabel('Number of particles (%)')
     plt.savefig(working_folder + 'flushing_time.png')
     plt.close()
-    return flushing_time
+    
+    flushing_time = convert_time_to_prog_units(
+        flushing_time,
+        output_options["time_units"],
+        "claws.postpro.plot_series_nparticles_in_polygon")
+    
+    return nparticles_in_polygon, flushing_time
 
 def round_logscale_axis(arr, leave_top=False, leave_bottom=False,
                         set_min=-np.inf, set_max=np.inf):
@@ -1317,7 +1334,7 @@ def print_last_treatment(plt, ax, t_last_treatment, label=None):
     ax.text(1.03*t_last_treatment, 1.05*ax_min, label, rotation=90, va='bottom')
     return [plt, ax]
     
-def animate_concentration_terrain(wf):
+def animate_concentration_terrain(working_folder):
     """Animate concentration on terrain map to produce of mp4 video from png
     images
     
@@ -1334,15 +1351,15 @@ def animate_concentration_terrain(wf):
     ov = 'concentration'
     os.system("ffmpeg -y -framerate {} -pattern_type glob -i " \
               "'{}concentration_*.png' -c:v libx264 -r {} " \
-              "-pix_fmt yuv420p {}.mp4 > /dev/null 2>&1".format(imrate, wf,
-                                                                frate, wf + ov))
+              "-pix_fmt yuv420p {}.mp4 > /dev/null 2>&1".format(imrate,
+              working_folder, frate, working_folder + ov))
                                                                 
-def animate_vertical_distribution(wf):
+def animate_vertical_distribution(working_folder):
     """Animate particle vertical distribution to produce of mp4 video from png
     images
     
     Arguments:
-        wf: string; working folder
+        working_folder: string; working folder
     """
     if not animation["animate"]: return
     # A video cannot be created from a single frame, vlc would crash
@@ -1354,24 +1371,22 @@ def animate_vertical_distribution(wf):
     ov = 'vertical_distribution'
     os.system("ffmpeg -y -framerate {} -pattern_type glob -i " \
               "'{}vertical_distribution_*.png' -c:v libx264 -r {} " \
-              "-pix_fmt yuv420p {}.mp4 > /dev/null 2>&1".format(imrate, wf,
-                                                                frate, wf + ov))
+              "-pix_fmt yuv420p {}.mp4 > /dev/null 2>&1".format(
+              imrate, working_folder, frate, working_folder + ov))
                                                                 
-def print_time_series_to_file(wf, input_list):
+def print_time_series_to_file(filename, input_list):
     """Print time series provided in the form of a list of tuples to a .dat
-    file. The first element is the name of the file to print, minus its path and
-    extension, and the second element of the tuple is the list
+    file. The first element of the input list is the name of the series and the
+    second element of the tuple is the list
     
     Arguments:
-        wf: string; working folder
+        filename: string; output file name (absolute path)
         
         input_list: list of tuples; format as given in the description
     """
 
     if not output_options["write_time_series_to_file"]: return
     
-    for i in input_list:
-        filename, list2print = i
-        if len(np.shape(list2print)) == 2:
-            list2print = list2print.transpose()
-        np.savetxt(fname=wf + filename + '.dat', X=list2print)
+    np.savetxt(fname=filename,
+               X=np.array([i[1] for i in input_list]).transpose(),
+               header='\t'.join(str(i[0]) for i in input_list))

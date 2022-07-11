@@ -30,7 +30,7 @@ def print_biomass_info(farm, loch, biomass_tonne, header_string):
     print("{}'s nutrient enhancement index = {:d}".format(farm.name(), nei))
 
 if __name__ == "__main__":
-    loch = LochLong()
+    loch = LochLong(existing_biomass=500., input_mass_units='tonne')
     
     farm = SalmonFarm(Ardentinny(),
                       BathMedicine(tarpaulin_height=3.,
@@ -45,8 +45,8 @@ if __name__ == "__main__":
     print(loch)
     print(farm)
     
-    existing_biomass_tonne = 500.
-    print_biomass_info(farm, loch, existing_biomass_tonne, "Existing biomass:")
+    print_biomass_info(farm, loch, loch.existing_biomass('tonne'),
+                       "Existing biomass:")
     
     farm.set_total_nutrient_discharge(40.64)
     option1_biomass_tonne = 2000.

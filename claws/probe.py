@@ -231,9 +231,9 @@ class Probe(Site):
                                      last_treatment_label)
         plt.tick_params(axis='y', which='minor')
         ax.yaxis.set_minor_formatter('')
-        plt.xlabel('Time {}'.format(output_options["time_units"]))
-        plt.ylabel('{} {}'.format(ylabel,
-                                  output_options["concentration_units"]))
+        plt.xlabel('Time ({})'.format(output_options["time_units"]))
+        plt.ylabel('{} ({})'.format(ylabel,
+                                    output_options["concentration_units"]))
         plt.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left",
                    mode="expand", borderaxespad=0, ncol=2)
         plt.savefig(wf + filename + '_' + str(pidx+1) + '.png')

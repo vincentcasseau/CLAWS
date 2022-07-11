@@ -178,7 +178,8 @@ class Quadtree(object):
     def name(self):
         return type(self).__name__
         
-    def update(self, pixelsize_m, bin_depth, mass_particle, seeding_radius):
+    def update(self, pixelsize_m, bin_depth, mass_particle=None,
+               seeding_radius=None):
         """Apply quadtree method defined in the sanitise function and return the
         new pixelsize_m if necessary
 
@@ -188,9 +189,11 @@ class Quadtree(object):
                 
             bin_depth: float; depth bin size in meters
             
-            mass_particle: float; mass of a single particle, in nanograms
+            mass_particle: float; mass of a single particle, in nanograms.
+                default is None
             
-            seeding_radius: float; representative seeding radius in meters
+            seeding_radius: float; representative seeding radius in meters.
+                default is None
         """
         pixelsize_m = float(pixelsize_m)
         
@@ -198,6 +201,9 @@ class Quadtree(object):
         if not self.__is_active:
             return pixelsize_m
             
+        if ((mass_particle is None) or (seeding_radius is None)):
+             self.__method = 0
+        
         if self.__method in [2, 3, 4]:
             # Recompute root bin width, pixelsize_m, using the concentration
             # target
