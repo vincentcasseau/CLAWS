@@ -5,6 +5,8 @@
 # Import modules
 import itertools
 import numpy as np
+from pyproj import Geod
+from shapely import geometry
 
 from claws.custom_exceptions import InputError
 
@@ -430,3 +432,21 @@ def convert_flowrate(input_value, output_fr_units, class_name):
                 available_flowrate_units])))
     
     return input_value/available_flowrate_units.get(output_fr_units)
+    
+def polygon_area(geojson_polygon_geometry, output_area_units='km^2'):
+    """Calculate the approximate area of a polygon projected onto the Earth.
+    
+    Arguments:
+        geojson_polygon_geometry: GeoJSON polygon geometry; input (lon,lat) data
+        
+    References:
+        https://stackoverflow.com/questions/68118907/shapely-pyproj-find-area-in-m2-of-a-polygon-created-from-latitude-and-longi
+        https://stackoverflow.com/questions/51554602/how-do-i-get-the-area-of-a-geojson-polygon-with-python
+        https://github.com/mapbox/geojson-area/blob/master/index.js
+    """
+    g = Geod(ellps='WGS84')
+    polygon = geometry.Polygon(geojson_polygon_geometry['coordinates'][0])
+    poly_area, _ = g.geometry_area_perimeter(polygon)
+    poly_area = convert_area(poly_area, output_area_units,
+                             'claws.helpers.polygon_area')
+    return poly_area
