@@ -9,6 +9,7 @@ import datetime
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import matplotlib.colors as colors
+import matplotlib.ticker as ticker
 from matplotlib.patches import Rectangle, Polygon, Circle
 import matplotlib.transforms as mtransforms
 
@@ -1215,8 +1216,12 @@ def plot_series_nparticles_in_polygon(working_folder, polygon, time, lons, lats,
         ax.text(flushing_time, ymax - 0.02*(ymax - ymin), 
                 "Flushing time ~ {:.2f} {}".format(flushing_time,
                 time_units_str), rotation=90, ha='right', va='top')
+                
+    ax.set_yscale('log')
     plt.tick_params(axis='y', which='minor')
     ax.yaxis.set_minor_formatter('')
+    ax.get_yaxis().set_major_formatter(ticker.ScalarFormatter())
+    ax.get_yaxis().set_minor_formatter(ticker.ScalarFormatter())
     plt.xlabel('Time ({})'.format(output_options["time_units"]))
     plt.ylabel('Number of particles (%)')
     plt.savefig(working_folder + 'flushing_time.png')
