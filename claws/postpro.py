@@ -6,6 +6,8 @@
 import os
 import numpy as np
 import datetime
+import pyproj
+import matplotlib.tri as tri
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import matplotlib.colors as colors
@@ -52,6 +54,73 @@ def find_last_treatment(seeding_locations):
             time_last_treatment = np.max([time_last_treatment,
                                           loc_last_treatment])
     return time_last_treatment
+    
+def plot_bathymetry_map(working_folder, corners, loch_obj, seeding_locations,
+                        probes_obj, proj4_params, bathymetry_file=''):
+    """Plot concentration on terrain map for all output times
+    
+    Arguments:
+        working_folder: string; working folder
+        
+        corners: list of 4 floats: [lon_min, lon_max, lat_min, lat_max];   
+            impose the extent of the terrain map
+        
+        loch_obj: Loch object as implemented in claws.Loch
+        
+        seeding_locations: list of Farm objects as implemented in
+            claws.Farm; Seeding locations
+        
+        probes_obj: list of Probe objects as implemented in claws.Probe
+        
+        proj4_params: projection parameters
+        
+        bathymetry_file: bathymetry input file in XYZ format.
+            default is empty string
+    """
+   
+    if not (bathymetry_file and os.path.isfile(bathymetry_file)):
+        return
+    
+    globe = ccrs.Mercator().globe
+    proj = pyproj.Proj(proj4_params)
+
+    # Load bathymetry data
+    a = np.loadtxt(fname=bathymetry_file, comments=['#', ':'])
+    for p in range(np.shape(a)[0]):
+         a[p][0], a[p][1] = proj(a[p][0], a[p][1], inverse=True)
+         a[p][2] = min(a[p][2], 0.0)
+    x, y, z = a.transpose()
+    
+    # A contour plot of irregularly spaced data coordinates via interpolation on
+    # a grid. Create grid values first
+    ngridx = 1000
+    ngridy = 1000
+    xi = np.linspace(corners[0], corners[1], ngridx)
+    yi = np.linspace(corners[2], corners[3], ngridy)
+
+    # Linearly interpolate the data (x, y) on a grid defined by (xi, yi)
+    triang = tri.Triangulation(x, y)
+    interpolator = tri.LinearTriInterpolator(triang, z)
+    Xi, Yi = np.meshgrid(xi, yi)
+    zi = interpolator(Xi, Yi)
+
+    # Plot concentration on terrain map for all output times
+    fig, ax = create_terrain(corners=corners, loch_obj=loch_obj,
+                             seeding_locations=seeding_locations,
+                             display_probe_markers=True,
+                             probes=probes_obj)
+
+    # Draw contours
+    cntr = ax.contourf(xi, yi, zi, levels=20, cmap="ocean",
+                       transform=ccrs.PlateCarree(globe=globe))
+                      
+    # Set colorbar and save
+    cbar = fig.colorbar(cntr, ax=ax, orientation="horizontal", shrink=0.65,
+                        pad=0.075, aspect=25, extend='min')
+    cbar.set_label('Bathymetry (m)')
+    plt.suptitle(' ', y=0.97) 
+    plt.savefig(working_folder + 'bathymetry.png')
+    plt.close()
     
 def plot_concentration_map(working_folder, corners, concentration,
                            quadtree_conc_lvl, loch_obj, chemical_obj,
