@@ -24,14 +24,6 @@ class NoTreatment(Treatment):
         super().__init__(tarpaulin_height=1.0, tarpaulin_radius=1.0,
                          seeding_times=[], nparticles=[], Chemicals=[])
                          
-class Dyeing(Treatment):
-    def __init__(self, nparticles, Chemicals, seeding_times=[0.0],
-                 input_time_units='h', reference="", name=""):
-        super().__init__(tarpaulin_height=1.0, tarpaulin_radius=1.0,
-                         seeding_times=seeding_times, nparticles=nparticles,
-                         Chemicals=Chemicals, input_time_units=input_time_units,
-                         reference=reference, name=name)
-                         
 class BathMedicine(Treatment):
     def __init__(self, tarpaulin_height, tarpaulin_radius, seeding_times,
                  nparticles, Chemicals, input_len_units='m',
@@ -39,3 +31,11 @@ class BathMedicine(Treatment):
         super().__init__(tarpaulin_height, tarpaulin_radius, seeding_times,
                          nparticles, Chemicals, input_len_units,
                          input_time_units, reference, name)
+                         
+class Dyeing(Treatment):
+    def __init__(self, nparticles, Chemicals, seeding_times=[0.0],
+                 input_time_units='h', reference="", name=""):
+        super().__init__(tarpaulin_height=1.0, tarpaulin_radius=1.0,
+                         seeding_times=seeding_times, nparticles=nparticles,
+                         Chemicals=Chemicals, input_time_units=input_time_units,
+                         reference=reference, name=name)
