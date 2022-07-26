@@ -5,6 +5,7 @@
 # Import modules
 import os
 import numpy as np
+import xarray as xr
 import datetime
 import pyproj
 import matplotlib.tri as tri
@@ -55,9 +56,107 @@ def find_last_treatment(seeding_locations):
                                           loc_last_treatment])
     return time_last_treatment
     
+def plot_selafin_map(working_folder, corners, loch_obj, seeding_locations,
+                        probes_obj, proj4_params, selafin_folder=''):
+    """Plot selafin data on terrain map
+    
+    Arguments:
+        working_folder: string; working folder
+        
+        corners: list of 4 floats: [lon_min, lon_max, lat_min, lat_max];   
+            impose the extent of the terrain map
+        
+        loch_obj: Loch object as implemented in claws.Loch
+        
+        seeding_locations: list of Farm objects as implemented in
+            claws.Farm; Seeding locations
+        
+        probes_obj: list of Probe objects as implemented in claws.Probe
+        
+        proj4_params: projection parameters
+        
+        selafin_folder: selafin data input folder, containing xarrays
+            (engine: zarr). default is empty string
+    """
+   
+    if not (selafin_folder and os.path.isdir(selafin_folder)):
+        return
+    
+    globe = ccrs.Mercator().globe
+    proj = pyproj.Proj(proj4_params)
+
+    # Load selafin data
+    arr = xr.open_dataset(selafin_folder, engine='zarr')
+    x, y = arr.node_x, arr.node_y
+    for i in range(len(x)):
+        x[i], y[i] = proj(x[i], y[i], inverse=True)
+    
+    selafin_vars = {
+      'altitude': ['m', 'Bathymetry', 'bathymetry', 'ocean'],
+      'sea_water_salinity': ['PSU', 'Sea water salinity', 'salinity', 'summer'],
+      'sea_water_temperature': ['°C', 'Sea water temperature', 'temperature', 'jet'],
+      'turbulent_kinetic_energy': ['J/kg', 'Turbulent kinetic energy', 'tke', 'jet'],
+      'x_sea_water_velocity': ['m/s', 'Velocity, Vx', 'vx', 'jet'],
+      'y_sea_water_velocity': ['m/s', 'Velocity, Vy', 'vy', 'jet'],
+      'upward_sea_water_velocity': ['m/s', 'Velocity, Vz', 'vz', 'jet'],}
+      
+    for var in arr.keys():
+        # Skip variables that aren't listed in the dictionary above
+        if var not in selafin_vars.keys():
+            continue
+        
+        var_units = selafin_vars[var][0]
+        var_legend = '{} ({})'.format(selafin_vars[var][1], var_units) 
+        var_cmap = selafin_vars[var][3]
+        
+        for tbin in range(len(arr[var].time)):
+            var_time = arr[var].time[tbin].item()
+            if var != "altitude":
+                var_title = np.datetime64(var_time, 'ns').astype(
+                    'datetime64[us]').astype(datetime.datetime).strftime(
+                    '%d %B %Y, %I:%M:%S %p')
+            else:
+                var_title = ' '
+            var_filename = '{}_{:04d}.png'.format(selafin_vars[var][2], tbin)
+            z = arr[var][tbin][0] # first of the 8 layers TODO?
+            
+            # A contour plot of irregularly spaced data coordinates via
+            # interpolation on a grid. Create grid values first
+            ngridx = 1000
+            ngridy = 1000
+            xi = np.linspace(corners[0], corners[1], ngridx)
+            yi = np.linspace(corners[2], corners[3], ngridy)
+
+            # Linearly interpolate the data (x, y) on a grid defined by (xi, yi)
+            triang = tri.Triangulation(x, y)
+            interpolator = tri.LinearTriInterpolator(triang, z)
+            Xi, Yi = np.meshgrid(xi, yi)
+            zi = interpolator(Xi, Yi)
+            if var == 'altitude':
+                zi = np.minimum(zi, 0.0)
+
+            # Plot concentration on terrain map for all output times
+            fig, ax = create_terrain(corners=corners, loch_obj=loch_obj,
+                                     seeding_locations=seeding_locations,
+                                     display_probe_markers=True,
+                                     probes=probes_obj)
+
+            # Draw contours
+            cntr = ax.contourf(xi, yi, zi, levels=20, cmap=var_cmap,
+                               transform=ccrs.PlateCarree(globe=globe))
+                              
+            # Set colorbar and save
+            cbar = fig.colorbar(cntr, ax=ax, orientation="horizontal",
+                                shrink=0.65, pad=0.075, aspect=25)
+            cbar.set_label(var_legend)
+            plt.suptitle(var_title, y=0.97) 
+            plt.savefig(working_folder + var_filename)
+            plt.close()
+            break
+    
 def plot_bathymetry_map(working_folder, corners, loch_obj, seeding_locations,
                         probes_obj, proj4_params, bathymetry_file=''):
-    """Plot concentration on terrain map for all output times
+    """Plot bathymetry on terrain map
     
     Arguments:
         working_folder: string; working folder
@@ -116,10 +215,10 @@ def plot_bathymetry_map(working_folder, corners, loch_obj, seeding_locations,
                       
     # Set colorbar and save
     cbar = fig.colorbar(cntr, ax=ax, orientation="horizontal", shrink=0.65,
-                        pad=0.075, aspect=25, extend='min')
+                        pad=0.075, aspect=25)
     cbar.set_label('Bathymetry (m)')
     plt.suptitle(' ', y=0.97) 
-    plt.savefig(working_folder + 'bathymetry.png')
+    plt.savefig(working_folder + 'bathymetry_raw.png')
     plt.close()
     
 def plot_concentration_map(working_folder, corners, concentration,
