@@ -25,7 +25,8 @@ __status__ = "Production"
 # ---------------------------------------------------------------------------- #
 
 # Available concentration units (1. corresponds to program units)
-available_conc_units = {'ng/L': 1., 'ug/L': 1.e3, 'mg/L': 1.e6, 'g/L': 1.e9}
+available_conc_units = {'ng/L': 1., 'ug/L': 1.e3, 'mg/L': 1.e6, 'g/L': 1.e9,
+                        'kg/m^3': 1.e9}
                         
 # Available mole units (1. corresponds to program units)
 available_mol_units = {'umol': 1.e-6, 'mmol': 1.e-3, 'mol': 1., 'kmol': 1.e3}
@@ -48,7 +49,11 @@ available_mass_units = {'ng': 1.e-12, 'ug': 1.e-9, 'mg': 1.e-6, 'g': 1.e-3,
 
 # Available flow rate units                        
 available_flowrate_units = {k1 + '/' + k2: v1/v2 for ((k1,v1), (k2,v2)) in
-    itertools.product(available_vol_units.items(), available_time_units.items())} 
+    itertools.product(available_vol_units.items(), available_time_units.items())}
+    
+# Available velocity units                        
+available_vel_units = {k1 + '/' + k2: v1/v2 for ((k1,v1), (k2,v2)) in
+    itertools.product(available_len_units.items(), available_time_units.items())} 
 
 
 # ---------------------------------------------------------------------------- #
@@ -281,6 +286,25 @@ def convert_mass_to_prog_units(input_value, input_mass_units, class_name):
     
     return input_value*available_mass_units.get(input_mass_units)
     
+def convert_vel_to_prog_units(input_value, input_vel_units, class_name):
+    """Convert an input velocity in prog. units
+    
+    Arguments:
+        input_value: float; Velocity value to convert in prog. units
+        
+        input_vel_units: string; Input velocity units. Available velocity units
+            are listed in available_vel_units
+            
+        class_name: string; name of the class calling this function
+    """
+    if input_vel_units not in available_vel_units.keys():
+        raise InputError(input_vel_units,
+            "Velocity units not recognised in {}. "\
+            "Options are: {}".format(class_name, ', '.join([units for units in
+                available_vel_units])))
+    
+    return input_value*available_vel_units.get(input_vel_units)
+    
 def convert_conc(input_value, output_conc_units, class_name):
     """Convert an input concentration from prog units to output_conc_units
     
@@ -413,6 +437,25 @@ def convert_mass(input_value, output_mass_units, class_name):
                 available_mass_units])))
     
     return input_value/available_mass_units.get(output_mass_units)
+    
+def convert_vel(input_value, output_vel_units, class_name):
+    """Convert an input velocity from prog units to output_vel_units
+    
+    Arguments:
+        input_value: float; Velocity value to convert in output_vel_units
+        
+        output_vel_units: string; Input velocity units. Available velocity units
+            are listed in available_vel_units
+            
+        class_name: string; name of the class calling this function
+    """
+    if output_vel_units not in available_vel_units.keys():
+        raise InputError(output_vel_units,
+            "Velocity units not recognised in {}. "\
+            "Options are: {}".format(class_name, ', '.join([units for units in
+                available_vel_units])))
+    
+    return input_value/available_vel_units.get(output_vel_units)
     
 def convert_flowrate(input_value, output_fr_units, class_name):
     """Convert an input flow rate from prog units to output_fr_units
