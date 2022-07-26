@@ -73,7 +73,7 @@ class LochDuich(Loch):
 class LochHourn(Loch):
     def __init__(self, existing_biomass=0.0, input_mass_units='tonne'):
         super().__init__(area=33.7, tidal_range=4.2, volume=2005.5,
-                         mean_depth=59.5,
+                         mean_depth=59.5, existing_biomass=existing_biomass,
                          reference=_refEdwardsSharples + "p. 133")
             
 class LochLinnhe(Loch):

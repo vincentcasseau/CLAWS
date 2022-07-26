@@ -8,6 +8,7 @@ import numpy as np
 
 from claws.custom_exceptions import InputError
 from claws.helpers import *
+from claws.loch import Loch
 from claws.treatments import NoTreatment
 from claws.waste_managers import NoWasteManager
 
@@ -60,9 +61,9 @@ def nutrient_enhancement_index(ECE):
 # ---------------------------------------------------------------------------- #
 
 class Farm(object):
-    def __init__(self, Site, Treatment=NoTreatment(),
+    def __init__(self, Site=None, Treatment=NoTreatment(),
                  WasteManager=NoWasteManager(), yearly_fish_production=0.0,
-                 total_nutrient_discharge=0.0, input_mass_units='kg',
+                 total_nutrient_discharge=0.0, input_mass_units='kg', Loch=None,
                  reference="", name=""):
         # __name: string; Farm name. default is class name
         self.__name = name
@@ -82,7 +83,7 @@ class Farm(object):
         # __reference: string; Reference. default: empty string
         self.__reference = reference
         
-        self._sanitize(input_mass_units)
+        self._sanitize(input_mass_units, Loch)
         
     def __str__(self):
         return """{}\n\tSite = {}\n\tTreatment = {}\n\tWaste manager = {}\
@@ -94,6 +95,9 @@ class Farm(object):
             self.yearly_fish_production('tonne'),
             self.__total_nutrient_discharge, self.__reference)
     
+    def name(self):
+        return self.__name
+        
     def Site(self):
         return self.__site_obj
         
@@ -119,7 +123,7 @@ class Farm(object):
             raise InputError(self.__total_nutrient_discharge,
                 "Farm's total nutrient discharge should be a positive number")
     
-    def _sanitize(self, input_mass_units):
+    def _sanitize(self, input_mass_units, loch_obj):
         if not self.__name:
             self.__name = ' '.join(re.findall('([A-Z][a-z]+)',
                                    type(self).__name__))
@@ -134,10 +138,17 @@ class Farm(object):
         # Yearly fish production stored in kg
         self.__yearly_fish_production = convert_mass_to_prog_units(
             self.__yearly_fish_production, input_mass_units, self.name())
+            
+        if self.__site_obj is None:
+            if (type(loch_obj) == Loch and
+                    loch_obj.averaged_coordinates() is not None):
+                self.__site_obj = loch_obj.averaged_coordinates()
+            else:
+                raise InputError(self.__site_obj, "The farm location is a "\
+                    "mandatory input: it can either be a Site or a loch's "\
+                    "averaged location, provided that the Loch object is "\
+                    "passed a GeoJSON polygon")
                 
-    def name(self):
-        return self.__name
-        
     def ece(self, total_max_consented_biomass, loch_obj,
             input_mass_units='tonne', units='umol/L'):
         """Return the equilibrium concentration enhancement (ECE) for nitrogen

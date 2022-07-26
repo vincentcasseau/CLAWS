@@ -10,6 +10,7 @@ import numpy as np
 
 from claws.custom_exceptions import InputError
 from claws.helpers import *
+from claws.site import Site
 
 __author__ = "Vincent Casseau and Tom Scanlon"
 __copyright__ = "Copyright 2022, MTS-CFD Ltd."
@@ -48,6 +49,7 @@ class Loch(object):
         # __geojson_file: string; File storing a GeoJSON polygon to define the 
         # geographical extent of the loch. default is empty string
         self.__geojson_file = geojson_file
+        self.__geojson_polygon = None
         # __existing_biomass: float; Existing nitrogen biomass in kg.
         # default is 0
         self.__existing_biomass = existing_biomass
@@ -86,17 +88,37 @@ class Loch(object):
         return self.__geojson_polygon
         
     def geojson_polygon_geometry(self):
-        return self.__geojson_polygon['geometry']
+        if self.__geojson_polygon is not None:
+            return self.__geojson_polygon['geometry']
+        return None
+        
+    def geojson_polygon_geometry_coords(self):
+        if self.__geojson_polygon is not None:
+            return self.__geojson_polygon['geometry']['coordinates'][0]
+        return None
+        
+    def averaged_coordinates(self):
+        if self.__geojson_polygon is not None:
+            coords = self.geojson_polygon_geometry_coords()
+            lons = [pt[0] for pt in coords]
+            lats = [pt[1] for pt in coords]
+            return Site(name=self.name(), longitude=np.mean(lons),
+                        latitude=np.mean(lats),
+                        reference="{}'s GeoJSON polygon".format(self.name()))
+        return None
         
     def geojson_polygon_properties(self):
-        return self.__geojson_polygon['properties']
+        if self.__geojson_polygon is not None:
+            return self.__geojson_polygon['properties']
+        return None
     
     def existing_biomass(self, units='tonne'):
-        return convert_mass(self.__existing_biomass, units, self.name())  
+        return convert_mass(self.__existing_biomass, units, self.name())
         
     def set_geojson_polygon_properties(self, input_dict):
-        for key, value in input_dict.items():
-            self.__geojson_polygon['properties'][key] = value
+        if self.__geojson_polygon is not None:
+            for key, value in input_dict.items():
+                self.__geojson_polygon['properties'][key] = value
         
     def _sanitize(self, input_len_units, input_area_units, input_vol_units,
                   input_mass_units):
@@ -181,7 +203,8 @@ class Loch(object):
             self.__existing_biomass, input_mass_units, self.name())
         
     def set_GeoJSON_properties(self, units='m'):
-        self.__geojson_polygon['properties']
+        if self.__geojson_polygon is not None:
+            self.__geojson_polygon['properties']
     
     def aze(self, units='m^2'):
         """Allowable zone of effect (AZE) of the Loch

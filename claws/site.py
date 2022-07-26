@@ -107,13 +107,13 @@ class Site(object):
         if self.__lon is not None:
             self.__input_coordinate_system = 'Geographic'
             
-            assert(type(self.__lon) in [int, float])
+            assert(type(self.__lon) in [int, float, np.float64])
             if abs(self.__lon) > 90.0:
                 raise InputError(self.__lon, 
                     "Longitude of Site {} must be comprised between -90 deg "\
                         "and +90 deg".format(self.name()))
             
-            assert(type(self.__lat) in [int, float])
+            assert(type(self.__lat) in [int, float, np.float64])
             if abs(self.__lat) > 90.0:
                 raise InputError(self.__lat, 
                     "Latitude of Site {} must be comprised between -90 deg "\
