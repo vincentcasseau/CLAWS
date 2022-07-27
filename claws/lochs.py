@@ -70,6 +70,20 @@ class LochDuich(Loch):
                          input_mass_units=input_mass_units,
                          reference=_refEdwardsSharples + "p. 93")
             
+class LochEtive(Loch):
+    def __init__(self, existing_biomass=0.0, input_mass_units='tonne'):
+        super().__init__(area=27.7, tidal_range=1.8, volume=939.8,
+                         mean_depth=33.9, existing_biomass=existing_biomass,
+                         input_mass_units=input_mass_units,
+                         reference=_refEdwardsSharples + "p. 38")
+                         
+class LochFyne(Loch):
+    def __init__(self, existing_biomass=0.0, input_mass_units='tonne'):
+        super().__init__(area=175.5, tidal_range=3.1, volume=9746.7,
+                         mean_depth=55.5, existing_biomass=existing_biomass,
+                         input_mass_units=input_mass_units,
+                         reference=_refEdwardsSharples + "p. 42") 
+                         
 class LochHourn(Loch):
     def __init__(self, existing_biomass=0.0, input_mass_units='tonne'):
         super().__init__(area=33.7, tidal_range=4.2, volume=2005.5,
