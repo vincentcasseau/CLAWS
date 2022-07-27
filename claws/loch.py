@@ -7,9 +7,12 @@ from os.path import exists as file_exists
 import re
 import json
 import numpy as np
+from scipy.signal import argrelextrema
+import matplotlib.pyplot as plt
 
 from claws.custom_exceptions import InputError
 from claws.helpers import *
+from claws.claws import output_options
 from claws.site import Site
 
 __author__ = "Vincent Casseau and Tom Scanlon"
@@ -20,6 +23,97 @@ __version__ = "1.2"
 __maintainer__ = "Vincent Casseau"
 __email__ = "claws.scot@gmail.com"
 __status__ = "Production"
+
+
+# ---------------------------------------------------------------------------- #
+# Functions 
+# ---------------------------------------------------------------------------- #
+
+def tidal_range(working_folder, sea_water_elevation_file, input_len_units='m'):
+    """Compute the min/mean/max tidal ranges over a time period
+
+    Tidal range: vertical difference in height between consecutive high and low
+    waters over a tidal cycle
+    
+    Arguments:
+        working_folder: string; working folder
+        
+        sea_water_elevation_file: string; full path to the sea water elevation
+            file. It is a single-column file with no header line
+            
+        input_len_units: string; input elevation units. default is meters
+    """    
+    # Check if the input sea water elevation file exists. If not, do nothing
+    if not(sea_water_elevation_file and file_exists(sea_water_elevation_file)):
+        print("Sea water elevation file not provided")
+        return [None, None, None]
+    
+    # Read the input file
+    elevation = np.genfromtxt(sea_water_elevation_file)
+    # Convert elevation to program units
+#    elevation = convert_len_to_prog_units(elevation, input_len_units,
+#                                          'claws.loch.tidal_range')
+    npoints = len(elevation)
+
+    # Find positions of all local maxima
+    flow_tide_elevation = argrelextrema(elevation, np.greater)[0]
+
+    # Find positions of all local minima
+    ebb_tide_elevation = argrelextrema(elevation, np.less)[0]
+
+    # Count number of flow and ebb tides, and the number of tides as the minimum
+    # of the two
+    n_flow_tides = len(flow_tide_elevation)
+    n_ebb_tides = len(ebb_tide_elevation)
+
+    n_tides = min(n_flow_tides, n_ebb_tides)
+    flow_tide_elevation = flow_tide_elevation[:n_tides]
+    ebb_tide_elevation = ebb_tide_elevation[:n_tides]
+
+    # Over the time period that is that given in the input file, if the ebb tide
+    # comes first, the tidal range will be defined as the difference between the
+    # ebb tide elevation and the consecutive high tide. If a flow tide comes
+    # first, it will be the difference between the flow tide elevation and the
+    # elevation of the subsequent ebb tide.
+    tidal_range = \
+        elevation[flow_tide_elevation] - elevation[ebb_tide_elevation]
+        
+    min_tidal_range = np.min(tidal_range)
+    mean_tidal_range = np.mean(tidal_range)
+    max_tidal_range = np.max(tidal_range)
+    
+    # Plot time series of the sea water elevation
+    fig, ax = plt.subplots(1)
+    plt.plot(np.arange(0, npoints), elevation, color='black', linestyle='-',
+             lw=1, label='Elevation')
+    plt.plot(flow_tide_elevation, elevation[flow_tide_elevation], color='red',
+             marker='+', label='Flow tide')
+    plt.plot(ebb_tide_elevation, elevation[ebb_tide_elevation], color='blue',
+             marker='x', label='Ebb tide')
+    plt.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left", mode="expand",
+               borderaxespad=0, ncol=3)         
+    plt.xlabel('Timestamp')
+    plt.ylabel('Sea water elevation (m)')
+    plt.savefig(working_folder + 'sea_water_elevation.png')
+    plt.close()
+
+    # Plot time series of the tidal range
+    fig, ax = plt.subplots(1)
+    plt.plot(np.arange(0, n_tides), tidal_range, color='black', linestyle='-',
+             lw=1)
+    plt.axhline(y=min_tidal_range, color='blue', linestyle='dashed',
+                label='min. = {:.3f}'.format(min_tidal_range))
+    plt.axhline(y=mean_tidal_range, color='green', linestyle='dashed',
+                label='mean = {:.3f}'.format(mean_tidal_range))
+    plt.axhline(y=max_tidal_range, color='red', linestyle='dashed',
+                label='max. = {:.3f}'.format(max_tidal_range))
+    plt.legend(bbox_to_anchor=(0,1.02,1,0.2), loc="lower left", mode="expand",
+               borderaxespad=0, ncol=3)               
+    plt.xlabel('Number of flow/ebb tides')
+    plt.ylabel('Tidal range (m)')
+    plt.savefig(working_folder + 'tidal_range.png')
+    plt.close()
+    return [min_tidal_range, mean_tidal_range, max_tidal_range]
 
 
 # ---------------------------------------------------------------------------- #
