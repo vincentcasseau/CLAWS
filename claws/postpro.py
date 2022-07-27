@@ -115,9 +115,11 @@ def plot_selafin_map(working_folder, corners, loch_obj, seeding_locations,
                 var_title = np.datetime64(var_time, 'ns').astype(
                     'datetime64[us]').astype(datetime.datetime).strftime(
                     '%d %B %Y, %I:%M:%S %p')
+                var_filename = '{}_{:04d}.png'.format(selafin_vars[var][2],
+                                                      tbin)
             else:
                 var_title = ' '
-            var_filename = '{}_{:04d}.png'.format(selafin_vars[var][2], tbin)
+                var_filename = '{}.png'.format(selafin_vars[var][2])
             z = arr[var][tbin][0] # first of the 8 layers TODO?
             
             # A contour plot of irregularly spaced data coordinates via
